@@ -18,6 +18,18 @@ swagger:
   try-host: http://localhost:${server.port}
 
 spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/pofa?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 18043187516
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
+
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  typeAliasesPackage: com.pofa.*.entity
+  global-config:
+    banner: false
