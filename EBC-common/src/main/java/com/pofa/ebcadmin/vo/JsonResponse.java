@@ -9,6 +9,7 @@ import lombok.ToString;
 public class JsonResponse {
     public int code = 200;
     public Object data;
+    public String msg = "success";
 
     public JsonResponse(int code){
         this.code = code;

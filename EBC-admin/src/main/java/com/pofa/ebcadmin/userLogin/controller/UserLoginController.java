@@ -41,14 +41,12 @@ public class UserLoginController {
     @PostMapping("/login")
     public SaResult userLogin(SysUserLoginDTO user) throws ParseException, JOSEException {
         List<UserInfo> userInfos = userService.userLogin(user.getUsername(), user.getPassword());
-
         if (!userInfos.isEmpty()) {
             // 第二步：根据账号id，进行登录
             StpUtil.login(userInfos.get(0).getUid());
-            return SaResult.ok("登录成功").setData(StpUtil.getTokenInfo());
+            return SaResult.ok("success").setData(StpUtil.getTokenInfo());
         }
-        return SaResult.error("登录失败");
-
+        return SaResult.ok("success").setData("账号或密码错误");
     }
 
     @ApiOperation(value = "注册", notes = "用于用户的注册，账号+密码",
@@ -58,7 +56,7 @@ public class UserLoginController {
             @ApiImplicitParam(name = "password", value = "注册密码", dataType = "String", paramType = "query", dataTypeClass = String.class, example = "123456", required = false),
     })
     @PostMapping("/regist")
-    public JsonResponse userRegist(SysUserLoginDTO user) {
+    public SaResult userRegist(SysUserLoginDTO user) {
         int code = userService.userRegistry(user.getUsername(), user.getPassword());
 
         String data = switch (code) {
@@ -69,7 +67,9 @@ public class UserLoginController {
             default -> "未知错误";
         };
 
-        return new JsonResponse(code, data);
+
+        //return new JsonResponse(code, data);
+        return SaResult.ok("success").setData(data).setCode(code);
     }
 
     /*

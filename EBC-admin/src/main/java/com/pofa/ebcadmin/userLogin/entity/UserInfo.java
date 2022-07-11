@@ -13,6 +13,10 @@ import org.springframework.stereotype.Repository;
 @TableName("users")
 public class UserInfo {
     private Long uid;
+    private Long creator_id;
+
+    private Long permission;
+
     private String username;
     private String password;
 }
