@@ -24,7 +24,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, timeout = 30 * 1000)
-    @Async
     public int userRegistry(String username, String password) {
         if (username.length() > 50) {
             return -101;

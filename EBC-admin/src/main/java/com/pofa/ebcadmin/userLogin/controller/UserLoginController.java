@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.nimbusds.jose.JOSEException;
 import com.pofa.ebcadmin.userLogin.dto.SysUserLoginDTO;
 import com.pofa.ebcadmin.userLogin.entity.UserInfo;
+import com.pofa.ebcadmin.userLogin.service.TestService;
 import com.pofa.ebcadmin.userLogin.service.UserService;
 import com.pofa.ebcadmin.vo.JsonResponse;
 import io.swagger.annotations.Api;
@@ -30,6 +31,9 @@ import java.util.List;
 public class UserLoginController {
     @Autowired
     public UserService userService;
+
+    @Autowired
+    public TestService testService;
 
 
     @ApiOperation(value = "登录", notes = "用于用户的登录接口,要么账号或者手机号和密码登录，要么手机和验证码登录，两个选择必须选一个！",
@@ -70,6 +74,14 @@ public class UserLoginController {
 
         //return new JsonResponse(code, data);
         return SaResult.ok("success").setData(data).setCode(code);
+    }
+
+
+    @PostMapping("/test")
+    public SaResult test() {
+        testService.addDatas(200000);
+
+        return SaResult.ok("success");
     }
 
     /*
