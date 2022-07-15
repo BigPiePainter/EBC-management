@@ -1,6 +1,6 @@
 package com.pofa.ebcadmin.vo;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import lombok.Data;
 import lombok.ToString;
 

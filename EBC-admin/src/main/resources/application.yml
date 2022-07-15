@@ -48,3 +48,9 @@ mybatis-plus:
   typeAliasesPackage: com.pofa.*.entity
   global-config:
     banner: false
+
+
+sa-token:
+  token-name: pofatoken
+  is-print: false
+

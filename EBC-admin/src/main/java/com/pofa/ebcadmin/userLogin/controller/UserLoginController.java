@@ -3,13 +3,11 @@ package com.pofa.ebcadmin.userLogin.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.util.SaResult;
-import com.alibaba.fastjson.JSONObject;
 import com.nimbusds.jose.JOSEException;
-import com.pofa.ebcadmin.userLogin.dto.SysUserLoginDTO;
+import com.pofa.ebcadmin.userLogin.dto.SysUser;
 import com.pofa.ebcadmin.userLogin.entity.UserInfo;
 import com.pofa.ebcadmin.userLogin.service.TestService;
 import com.pofa.ebcadmin.userLogin.service.UserService;
-import com.pofa.ebcadmin.vo.JsonResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -18,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.text.ParseException;
@@ -43,11 +40,12 @@ public class UserLoginController {
             @ApiImplicitParam(name = "password", value = "登录密码", dataType = "String", paramType = "query", dataTypeClass = String.class, example = "123456", required = false),
     })
     @PostMapping("/login")
-    public SaResult userLogin(SysUserLoginDTO user) throws ParseException, JOSEException {
+    public SaResult userLogin(SysUser.LoginDTO user) throws ParseException, JOSEException {
         List<UserInfo> userInfos = userService.userLogin(user.getUsername(), user.getPassword());
         if (!userInfos.isEmpty()) {
             // 第二步：根据账号id，进行登录
             StpUtil.login(userInfos.get(0).getUid());
+            StpUtil.getSession().set("user", userInfos.get(0));
             return SaResult.ok("success").setData(StpUtil.getTokenInfo());
         }
         return SaResult.ok("success").setData("账号或密码错误");
@@ -60,7 +58,7 @@ public class UserLoginController {
             @ApiImplicitParam(name = "password", value = "注册密码", dataType = "String", paramType = "query", dataTypeClass = String.class, example = "123456", required = false),
     })
     @PostMapping("/regist")
-    public SaResult userRegist(SysUserLoginDTO user) {
+    public SaResult userRegist(SysUser.LoginDTO user) {
         int code = userService.userRegistry(user.getUsername(), user.getPassword());
 
         String data = switch (code) {

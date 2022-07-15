@@ -1,12 +1,13 @@
 package com.pofa.ebcadmin.userLogin.controller;
 
 
+import cn.dev33.satoken.annotation.SaCheckLogin;
+import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.util.SaResult;
-import com.pofa.ebcadmin.userLogin.dto.ProductAddDTO;
-import com.pofa.ebcadmin.userLogin.dto.SysUserLoginDTO;
+import com.alibaba.fastjson2.JSONObject;
+import com.pofa.ebcadmin.userLogin.dto.Product;
+import com.pofa.ebcadmin.userLogin.entity.UserInfo;
 import com.pofa.ebcadmin.userLogin.service.ProductService;
-import com.pofa.ebcadmin.userLogin.service.TestService;
-import com.pofa.ebcadmin.userLogin.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -54,30 +55,9 @@ public class ProductController {
             @ApiImplicitParam(name = "manufacturer_address", value = "厂家退货-收件地址", dataType = "String", paramType = "query", dataTypeClass = String.class, example = "123456", required = false),
  })
     @PostMapping("/add")
-    public SaResult userRegist(ProductAddDTO product) {
-        int code = productService.productAdd(
-                product.getId(),
-                product.getDepartment(),
-                product.getGroup_name(),
-                product.getOwner(),
-                product.getShop_name(),
-                product.getProduct_name(),
-                product.getFirst_category(),
-                product.getProduct_deduction(),
-                product.getProduct_insurance(),
-                product.getProduct_freight(),
-                product.getExtra_ratio(),
-                product.getFreight_to_payment(),
-                product.getTransport_way(),
-                product.getStorehouse(),
-                product.getManufacturer_name(),
-                product.getManufacturer_group(),
-                product.getManufacturer_payment_method(),
-                product.getManufacturer_payment_name(),
-                product.getManufacturer_payment_id(),
-                product.getManufacturer_recipient(),
-                product.getManufacturer_phone(),
-                product.getManufacturer_address());
+    public SaResult productAdd(Product.AddDTO dto) {
+        System.out.println("收到了请求");
+        int code = productService.productAdd(dto);
 
         String data = switch (code) {
             case 1 -> "创建成功";
@@ -85,8 +65,52 @@ public class ProductController {
             default -> "未知错误";
         };
 
-
         //return new JsonResponse(code, data);
         return SaResult.ok("success").setData(data).setCode(code);
+    }
+
+
+
+    @ApiOperation(value = "获取权限内的商品列表", notes = "需要登陆, 无法直接测试", httpMethod = "POST")
+    @ApiImplicitParams({
+   })
+    @SaCheckLogin
+    @PostMapping("/getByPermission")
+    public SaResult productGet(Product.GetDTO dto) {
+        System.out.println("收到获取");
+        if (!StpUtil.isLogin()){
+            return SaResult.ok("success").setData("用户未登录");
+        }
+        UserInfo user = (UserInfo) StpUtil.getSession().get("user");
+        System.out.println(user);
+        System.out.println(dto);
+
+        //查询所有下级User
+
+        JSONObject data = productService.productGet(dto);
+
+        return SaResult.ok("success").setData(data);
+    }
+
+
+    @ApiOperation(value = "获取权限内的事业部, 组别, 商店名等类别", notes = "需要登陆, 无法直接测试", httpMethod = "POST")
+    @ApiImplicitParams({
+    })
+    @SaCheckLogin
+    @PostMapping("/getCategory")
+    public SaResult getCategory() {
+        System.out.println("收到获取");
+        //if (!StpUtil.isLogin()){
+        //    return SaResult.ok("success").setData("用户未登录");
+        //}
+        //UserInfo user = (UserInfo) StpUtil.getSession().get("user");
+        //System.out.println(user);
+
+        //查询所有下级User
+
+
+        JSONObject data = productService.categoryGet();
+
+        return SaResult.ok("success").setData(data);
     }
 }
