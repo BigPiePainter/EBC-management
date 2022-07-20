@@ -8,6 +8,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.pofa.ebcadmin.userLogin.dto.Product;
 import com.pofa.ebcadmin.userLogin.entity.UserInfo;
 import com.pofa.ebcadmin.userLogin.service.ProductService;
+import com.pofa.ebcadmin.userLogin.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -26,6 +27,8 @@ import java.math.BigDecimal;
 @RequestMapping("product")
 public class ProductController {
 
+    @Autowired
+    public UserService userService;
     @Autowired
     public ProductService productService;
 
@@ -86,8 +89,11 @@ public class ProductController {
         System.out.println(dto);
 
         //查询所有下级User
+        System.out.println(StpUtil.getLoginIdAsLong());
+        var users = userService.getUserIdsWithinAuthorityById(StpUtil.getLoginIdAsLong());
+        System.out.println(users);
 
-        JSONObject data = productService.productGet(dto);
+        JSONObject data = productService.getProductsByUserIds(users, dto);
 
         return SaResult.ok("success").setData(data);
     }
@@ -107,9 +113,11 @@ public class ProductController {
         //System.out.println(user);
 
         //查询所有下级User
+        System.out.println(StpUtil.getLoginIdAsLong());
+        var users = userService.getUserIdsWithinAuthorityById(StpUtil.getLoginIdAsLong());
+        System.out.println(users);
 
-
-        JSONObject data = productService.categoryGet();
+        JSONObject data = productService.getCategorysByUserIds(users);
 
         return SaResult.ok("success").setData(data);
     }

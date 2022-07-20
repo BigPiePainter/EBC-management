@@ -1,26 +1,22 @@
 package com.pofa.ebcadmin.userLogin.entity;
 
-
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Repository;
+
+import java.util.Date;
+
 
 @Data
 @Accessors(chain = true)
 @Repository
-@TableName("users")
-public class UserInfo {
+@TableName("departments")
+public class DepartmentInfo {
     private Long uid;
-    private Long creatorId;
 
-    private Long permission;
-
-    private String username;
-    private String password;
-
-
-    private String nick;
+    private String name;
+    private Date create_time;
+    private Date modify_time;
     private String note;
 }

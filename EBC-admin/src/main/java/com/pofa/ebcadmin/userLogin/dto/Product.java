@@ -12,6 +12,16 @@ public class Product {
     public static class GetDTO {
         private Long page;
         private Long itemsPerPage;
+
+        private String department;
+        private String groupName;
+        private String owner;
+        private String shopName;
+        private String firstCategory;
+        private String transportWay;
+        private String manufacturerName;
+        private String manufacturerPaymentMethod;
+
     }
     @Data
     public static class AddDTO {
