@@ -1,20 +1,26 @@
 package com.pofa.ebcadmin.userLogin.service.impl;
 
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.mysql.cj.xdevapi.JsonArray;
 import com.pofa.ebcadmin.userLogin.dao.ProductDao;
 import com.pofa.ebcadmin.userLogin.dto.Product;
 import com.pofa.ebcadmin.userLogin.entity.ProductInfo;
 import com.pofa.ebcadmin.userLogin.service.ProductService;
+import com.pofa.ebcadmin.utils.Convert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -28,7 +34,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
-    public int productAdd(Product.AddDTO dto) {
+    public int addProduct(Product.AddDTO dto) {
 
         var wrapper = new QueryWrapper<ProductInfo>().eq("id", dto.getId());
         List<ProductInfo> productInfos = productDao.selectList(wrapper);
@@ -62,8 +68,35 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
     public JSONObject getProductsByUserIds(List<Long> users, Product.GetDTO dto) {
+
+        //json格式的匹配规则：select类别匹配，search模糊匹配
+        var match = JSON.parseObject(dto.getMatch(), JSONObject.class);
+        var select = match.getJSONObject("select");
+        var search = match.getJSONObject("search");
+        System.out.println(select);
+        System.out.println(search);
+        System.out.println("------------------");
+
         //sql待优化，暂时不需要
         var wrapper = new QueryWrapper<ProductInfo>().in("owner", users);
+
+        //类别删选
+        for (Map.Entry<String, Object> entry : select.entrySet()) {
+            var value = (JSONArray) (entry.getValue());
+            if (value.isEmpty()) continue;
+            var items = new ArrayList<String>();
+            value.forEach(item -> items.add((String) item));
+            wrapper.in(Convert.camelToUnderScore(entry.getKey()), items);
+        }
+
+        //模糊查找，记得优化like
+        for (Map.Entry<String, Object> entry : search.entrySet()) {
+            var value = (String) (entry.getValue());
+            if (value.isEmpty()) continue;
+
+            wrapper.like(Convert.camelToUnderScore(entry.getKey()), value);
+        }
+
 
         var page = new Page<ProductInfo>(dto.getPage(), dto.getItemsPerPage());
         productDao.selectPage(page, wrapper);
@@ -110,18 +143,11 @@ public class ProductServiceImpl implements ProductService {
                 case "manufacturer_payment_method" -> item.getManufacturerPaymentMethod();
                 default -> "ERROR";
             }));
-            data.put(switch (col) {
-                case "group_name" -> "groupName";
-                case "shop_name" -> "shopName";
-                case "first_category" -> "firstCategory";
-                case "transport_way" -> "transportWay";
-                case "manufacturer_name" -> "manufacturerName";
-                case "manufacturer_payment_method" -> "manufacturerPaymentMethod";
-                default -> col;
-            }, array);
+            data.put(Convert.underScoreToCamel(col), array);
         }
 
         System.out.println(data);
         return data;
     }
+
 }

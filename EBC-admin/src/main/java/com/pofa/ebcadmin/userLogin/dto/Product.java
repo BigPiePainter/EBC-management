@@ -1,5 +1,6 @@
 package com.pofa.ebcadmin.userLogin.dto;
 
+import com.alibaba.fastjson2.JSONObject;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -13,15 +14,7 @@ public class Product {
         private Long page;
         private Long itemsPerPage;
 
-        private String department;
-        private String groupName;
-        private String owner;
-        private String shopName;
-        private String firstCategory;
-        private String transportWay;
-        private String manufacturerName;
-        private String manufacturerPaymentMethod;
-
+        private String match;
     }
     @Data
     public static class AddDTO {

@@ -59,8 +59,8 @@ public class ProductController {
  })
     @PostMapping("/add")
     public SaResult productAdd(Product.AddDTO dto) {
-        System.out.println("收到了请求");
-        int code = productService.productAdd(dto);
+        System.out.println("ADD TEST");
+        int code = productService.addProduct(dto);
 
         String data = switch (code) {
             case 1 -> "创建成功";
@@ -80,7 +80,7 @@ public class ProductController {
     @SaCheckLogin
     @PostMapping("/getByPermission")
     public SaResult productGet(Product.GetDTO dto) {
-        System.out.println("收到获取");
+        System.out.println("GET TEST");
         if (!StpUtil.isLogin()){
             return SaResult.ok("success").setData("用户未登录");
         }
@@ -95,22 +95,19 @@ public class ProductController {
 
         JSONObject data = productService.getProductsByUserIds(users, dto);
 
+
+
         return SaResult.ok("success").setData(data);
     }
 
 
-    @ApiOperation(value = "获取权限内的事业部, 组别, 商店名等类别", notes = "需要登陆, 无法直接测试", httpMethod = "POST")
+    @ApiOperation(value = "获取权限内的事业部, 组别, 商店名等类别", notes = "需要登陆", httpMethod = "POST")
     @ApiImplicitParams({
     })
     @SaCheckLogin
     @PostMapping("/getCategory")
     public SaResult getCategory() {
-        System.out.println("收到获取");
-        //if (!StpUtil.isLogin()){
-        //    return SaResult.ok("success").setData("用户未登录");
-        //}
-        //UserInfo user = (UserInfo) StpUtil.getSession().get("user");
-        //System.out.println(user);
+        System.out.println("getCategory TEST");
 
         //查询所有下级User
         System.out.println(StpUtil.getLoginIdAsLong());

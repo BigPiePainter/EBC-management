@@ -38,7 +38,7 @@ public class DepartmentController {
     @PostMapping("/add")
     public SaResult productAdd(Product.AddDTO dto) {
         System.out.println("收到了请求");
-        int code = productService.productAdd(dto);
+        int code = productService.addProduct(dto);
 
         String data = switch (code) {
             case 1 -> "创建成功";
