@@ -43,11 +43,11 @@ public class SkuInfoController {
     public SaResult addSkus(Sku.addDTO dto) {
         System.out.println("addSkus TEST");
         System.out.println(dto.getProductId());
-        System.out.println(dto.getData());
+        //System.out.println(dto.getData());
 
         var code = skuService.addSkusByProductId(dto.getProductId(), JSON.parseArray(dto.getData()));
 
-        return SaResult.ok("success").setCode(200).setData("。。。！？");
+        return SaResult.ok("success").setData("。。。！？");
     }
 
     @ApiOperation(value = "读取SKU", notes = "根据商品ID", httpMethod = "POST")

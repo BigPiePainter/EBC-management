@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 
 @Data
@@ -13,12 +14,10 @@ import java.math.BigDecimal;
 @Repository
 @TableName("products")
 public class ProductInfo {
-    private Long uid;
-
-    private String id;
+    private Long id;
     private String department;
     private String groupName;
-    private String owner;
+    private Long owner;
     private String shopName;
     private String firstCategory;
 
@@ -40,4 +39,8 @@ public class ProductInfo {
     private String manufacturerRecipient;
     private String manufacturerPhone;
     private String manufacturerAddress;
+
+
+    private Date createTime;
+    private Date modifyTime;
 }

@@ -18,10 +18,10 @@ public class Product {
     }
     @Data
     public static class AddDTO {
-        private String id;
+        private Long id;
         private String department;
         private String groupName;
-        private String owner;
+        private Long owner;
         private String shopName;
         private String firstCategory;
         private String productName;

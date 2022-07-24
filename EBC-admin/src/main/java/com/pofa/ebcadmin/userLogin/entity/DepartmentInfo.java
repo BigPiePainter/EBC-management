@@ -16,7 +16,7 @@ public class DepartmentInfo {
     private Long uid;
 
     private String name;
-    private Date create_time;
-    private Date modify_time;
+    private Date createTime;
+    private Date modifyTime;
     private String note;
 }

@@ -1,6 +1,8 @@
 package com.pofa.ebcadmin.userLogin.entity;
 
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -17,12 +19,17 @@ import java.util.Date;
 public class SkuInfo {
     private Long uid;
     private Long productId;
-
     private Long skuId;
+
     private String skuName;
     private BigDecimal skuPrice;
     private BigDecimal skuCost;
 
     private Date startTime;
-    private Date endTime;
+
+    @TableField(fill = FieldFill.INSERT)
+    private Date createTime;
+
+    @TableField(fill = FieldFill.INSERT)
+    private String note;
 }
