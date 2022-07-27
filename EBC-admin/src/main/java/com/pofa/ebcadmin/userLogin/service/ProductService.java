@@ -10,7 +10,6 @@ public interface ProductService {
 
     JSONObject getProductsByUserIds(List<Long> idList, Product.GetDTO dto);
 
-
     JSONObject getCategorysByUserIds(List<Long> idList);
 
 }

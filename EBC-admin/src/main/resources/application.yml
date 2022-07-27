@@ -48,8 +48,8 @@ mybatis-plus:
   typeAliasesPackage: com.pofa.*.entity
   global-config:
     banner: false
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 
 sa-token:

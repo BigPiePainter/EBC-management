@@ -8,10 +8,14 @@ public class Sku {
         private Long productId;
     }
 
-
     @Data
     public static class addDTO {
         private Long productId;
         private String data;   //json
+    }
+
+    @Data
+    public static class deleteDTO {
+        private Long uid;
     }
 }

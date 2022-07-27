@@ -1,8 +1,6 @@
-package com.pofa.ebcadmin.userLogin.dto;
+package com.pofa.ebcadmin.department.dto;
 
 import lombok.Data;
-
-import java.math.BigDecimal;
 
 public class Department {
 

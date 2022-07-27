@@ -1,12 +1,10 @@
-package com.pofa.ebcadmin.userLogin.dto;
+package com.pofa.ebcadmin.team.dto;
 
 import lombok.Data;
 
-import java.math.BigDecimal;
+public class Team {
 
-public class Group {
-
-    //public record AddDTO(Long page, Long itemsPerPage) {}
+    //public record GetDTO(Long page, Long itemsPerPage) {}
 
     @Data
     public static class GetDTO {

@@ -2,6 +2,8 @@ package com.pofa.ebcadmin.userLogin.service.impl;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.mysql.cj.xdevapi.JsonArray;
 import com.pofa.ebcadmin.userLogin.dao.SkuDao;
 import com.pofa.ebcadmin.userLogin.entity.SkuInfo;
 import com.pofa.ebcadmin.userLogin.service.SkuService;
@@ -25,17 +27,13 @@ public class SkuServiceImpl implements SkuService {
 
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
-    public int addSkusByProductId(Long productId, JSONArray skus) {
-        System.out.println("---------------------------------------\n-------------------");
-        System.out.println(productId);
-
+    public int addSkus(JSONArray skus) {
         System.out.println(new Date().getTime());
 
-        System.out.println("---------------------------------------\n-------------------");
         var list = new ArrayList<SkuInfo>();
-        for (var item : skus) {
-            var sku = (JSONArray) item;
-
+        var code = 0;
+        for (int i = 0; i < skus.size(); i++) {
+            var sku = skus.getJSONArray(i);
             list.add(new SkuInfo()
                     .setProductId(sku.getLong(0))
                     .setSkuId(sku.getLong(1))
@@ -44,19 +42,39 @@ public class SkuServiceImpl implements SkuService {
                     .setSkuCost(sku.getBigDecimal(4))
                     .setStartTime(sku.getDate(5))
             );
+            if ((i + 1) % 3000 == 0) {
+                code = skuDao.insertBatchSomeColumn(list);
+                list.clear();
+            }
         }
 
-        System.out.println(new Date().getTime());
-
-        skuDao.insertBatchSomeColumn(list);
-        System.out.println(new Date().getTime());
-
-        return 0;
+        if (!list.isEmpty()) {
+            code = skuDao.insertBatchSomeColumn(list);
+        }
+        return code;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
     public List<SkuInfo> getSkusByProductId(Long productId) {
-        return skuDao.selectList(new QueryWrapper<SkuInfo>().eq("product_id", productId));
+        return skuDao.selectList(new QueryWrapper<SkuInfo>().eq("product_id", productId).eq("deprecated", false));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
+    public List<SkuInfo> getDeprecatedSkusByProductId(Long productId) {
+        return skuDao.selectList(new QueryWrapper<SkuInfo>().eq("deprecated", true).eq("product_id", productId));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
+    public int deprecateSkuByUid(Long uid) {
+        return skuDao.update(null, new UpdateWrapper<SkuInfo>().eq("uid", uid).set("deprecated", true).set("delete_time", new Date()));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
+    public int deleteSkuByUid(Long uid) {
+        return skuDao.delete(new QueryWrapper<SkuInfo>().eq("uid", uid));
     }
 }

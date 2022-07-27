@@ -14,6 +14,8 @@ public class CustomMetaObjectHandler implements MetaObjectHandler {
         this.setFieldValByName("createTime", new Date(), metaObject);
         this.setFieldValByName("modifyTime", new Date(), metaObject);
 
+        this.setFieldValByName("deprecated", false, metaObject);
+        this.setFieldValByName("deleteTime", new Date(), metaObject);
 
         this.setFieldValByName("note", "", metaObject);
     }
