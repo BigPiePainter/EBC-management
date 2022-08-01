@@ -34,10 +34,31 @@ public class ManufacturerController {
     @ApiOperation(value = "添加厂家信息", notes = "根据商品ID",
             httpMethod = "POST")
     @PostMapping("/add")
-    public SaResult manufacturerAdd(Manufacturer.AddDTO dto) {
+    public SaResult addManufacturer(Manufacturer.AddDTO dto) {
         //List<ManufacturerInfo> userInfos = manufacturerService.userLogin(user.getUsername(), user.getPassword());
         var code = manufacturerService.addManufacturer(dto);
-        return SaResult.ok("success").setData("").setCode(code);
+
+        String data = switch (code) {
+            case 1 -> "添加成功";
+            default -> "未知错误";
+        };
+
+        return SaResult.ok("success").setData(data).setCode(code);
+    }
+
+    @ApiOperation(value = "修改厂家信息", notes = "根据商品ID",
+            httpMethod = "POST")
+    @PostMapping("/modify")
+    public SaResult editManufacturer(Manufacturer.EditDTO dto) {
+        //List<ManufacturerInfo> userInfos = manufacturerService.userLogin(user.getUsername(), user.getPassword());
+        var code = manufacturerService.editManufacturer(dto);
+
+        String data = switch (code) {
+            case 1 -> "修改成功";
+            default -> "未知错误";
+        };
+
+        return SaResult.ok("success").setData(data).setCode(code);
     }
 
     @ApiOperation(value = "获取厂家信息", notes = "通过商品ID",
@@ -46,8 +67,28 @@ public class ManufacturerController {
             @ApiImplicitParam(name = "productId", value = "商品ID", dataType = "Long", paramType = "query", dataTypeClass = Long.class, example = "10000", required = false),
     })
     @PostMapping("/get")
-    public SaResult manufacturerGet(Manufacturer.GetDTO dto) {
+    public SaResult getManufacturer(Manufacturer.GetDTO dto) {
+        System.out.println("getManufacturers TEST");
         var manufacturers = manufacturerService.getManufacturersByProductId(dto.getProductId());
         return SaResult.ok("success").setData(new JSONObject().fluentPut("manufacturers", manufacturers));
     }
+
+    @ApiOperation(value = "删除厂家信息", notes = "通过Uid",
+            httpMethod = "POST")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "uid", value = "厂家UID", dataType = "Long", paramType = "query", dataTypeClass = Long.class, example = "10000", required = false),
+    })
+    @PostMapping("/delete")
+    public SaResult deleteManufacturer(Manufacturer.DeleteDTO dto) {
+        System.out.println("deleteManufacturers TEST");
+        var code = manufacturerService.deprecateManufacturersByUid(dto.getUid());
+        String data = switch (code) {
+            case 1 -> "删除成功";
+            default -> "未知错误";
+        };
+        return SaResult.ok("success").setData(data).setCode(code);
+    }
+
+
+
 }

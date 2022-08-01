@@ -31,15 +31,6 @@ public class ProductInfo {
     private String transportWay;
     private String storehouse;
 
-    private String manufacturerName;
-    private String manufacturerGroup;
-    private String manufacturerPaymentMethod;
-    private String manufacturerPaymentName;
-    private String manufacturerPaymentId;
-    private String manufacturerRecipient;
-    private String manufacturerPhone;
-    private String manufacturerAddress;
-
 
     private Date createTime;
     private Date modifyTime;

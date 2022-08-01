@@ -25,8 +25,8 @@ public class TeamServiceImpl implements TeamService {
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
     public int addTeam(Team.AddDTO dto) {
-        var departmentInfos = teamDao.selectList(new QueryWrapper<TeamInfo>().eq("name", dto.getName()));
-        if (departmentInfos.isEmpty()) {
+        var teamInfos = teamDao.selectList(new QueryWrapper<TeamInfo>().eq("name", dto.getName()));
+        if (teamInfos.isEmpty()) {
             return teamDao.insert(teamInfo.setName(dto.getName()).setNote(dto.getNote()));
         }
         return -100;

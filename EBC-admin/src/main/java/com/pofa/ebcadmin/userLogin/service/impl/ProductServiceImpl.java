@@ -52,15 +52,7 @@ public class ProductServiceImpl implements ProductService {
                     .setExtraRatio(dto.getExtraRatio())
                     .setFreightToPayment(dto.getFreightToPayment())
                     .setTransportWay(dto.getTransportWay())
-                    .setStorehouse(dto.getStorehouse())
-                    .setManufacturerName(dto.getManufacturerName())
-                    .setManufacturerGroup(dto.getManufacturerGroup())
-                    .setManufacturerPaymentMethod(dto.getManufacturerPaymentMethod())
-                    .setManufacturerPaymentName(dto.getManufacturerPaymentName())
-                    .setManufacturerPaymentId(dto.getManufacturerPaymentId())
-                    .setManufacturerRecipient(dto.getManufacturerRecipient())
-                    .setManufacturerPhone(dto.getManufacturerPhone())
-                    .setManufacturerAddress(dto.getManufacturerAddress()));
+                    .setStorehouse(dto.getStorehouse()));
         }
         return -100;
     }
@@ -117,8 +109,6 @@ public class ProductServiceImpl implements ProductService {
         targets.add("shop_name");
         targets.add("first_category");
         targets.add("transport_way");
-        targets.add("manufacturer_name");
-        targets.add("manufacturer_payment_method");
 
         List<ProductInfo> results;
         for (var col : targets) {
@@ -130,7 +120,6 @@ public class ProductServiceImpl implements ProductService {
 
             var wrapper = new QueryWrapper<ProductInfo>().select(col).groupBy(col).in("owner", users);
 
-
             results = productDao.selectList(wrapper);
             results.forEach(item -> array.add(switch (col) {
                 case "department" -> item.getDepartment();
@@ -139,8 +128,6 @@ public class ProductServiceImpl implements ProductService {
                 case "shop_name" -> item.getShopName();
                 case "first_category" -> item.getFirstCategory();
                 case "transport_way" -> item.getTransportWay();
-                case "manufacturer_name" -> item.getManufacturerName();
-                case "manufacturer_payment_method" -> item.getManufacturerPaymentMethod();
                 default -> "ERROR";
             }));
             data.put(Convert.underScoreToCamel(col), array);

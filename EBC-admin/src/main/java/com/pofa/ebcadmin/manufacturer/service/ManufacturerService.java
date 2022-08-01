@@ -9,6 +9,14 @@ public interface ManufacturerService {
 
     int addManufacturer(Manufacturer.AddDTO dto);
 
+    int editManufacturer(Manufacturer.EditDTO dto);
+
     List<ManufacturerInfo> getManufacturersByProductId(Long productId);
+
+
+    int deprecateManufacturersByUid(Long uid);
+
+    int deleteManufacturersByUid(Long uid);
+
 
 }

@@ -12,7 +12,7 @@ public class Manufacturer {
 
     @Data
     public static class AddDTO {
-        private Long product_id;
+        private Long productId;
         private Date startTime;
 
         private String manufacturerName;
@@ -25,5 +25,29 @@ public class Manufacturer {
         private String manufacturerAddress;
 
         private String note;
+    }
+
+    @Data
+    public static class EditDTO {
+        private Long uid;
+
+        private Long productId;
+        private Date startTime;
+
+        private String manufacturerName;
+        private String manufacturerGroup;
+        private String manufacturerPaymentMethod;
+        private String manufacturerPaymentName;
+        private String manufacturerPaymentId;
+        private String manufacturerRecipient;
+        private String manufacturerPhone;
+        private String manufacturerAddress;
+
+        private String note;
+    }
+
+    @Data
+    public static class DeleteDTO {
+        private Long uid;
     }
 }

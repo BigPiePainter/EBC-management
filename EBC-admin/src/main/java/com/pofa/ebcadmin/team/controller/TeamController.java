@@ -31,8 +31,9 @@ public class TeamController {
             @ApiImplicitParam(name = "note", value = "注释", dataType = "String", paramType = "query", dataTypeClass = String.class, example = "123456", required = false),
     })
     @PostMapping("/add")
-    public SaResult departmentAdd(Team.AddDTO dto) {
-
+    public SaResult addTeam(Team.AddDTO dto) {
+        System.out.println("addTeam TEST");
+        System.out.println(dto);
         var code = teamService.addTeam(dto);
 
         String data = switch (code) {
@@ -47,8 +48,8 @@ public class TeamController {
     @ApiOperation(value = "获取所有组别信息", notes = "", httpMethod = "POST")
     @ApiImplicitParams({})
     @PostMapping("/get")
-    public SaResult departmentGet(Team.GetDTO dto) {
-        var departments = teamService.getTeams();
-        return SaResult.ok("success").setData(new JSONObject().fluentPut("teams", departments));
+    public SaResult getTeams(Team.GetDTO dto) {
+        var teams = teamService.getTeams();
+        return SaResult.ok("success").setData(new JSONObject().fluentPut("teams", teams));
     }
 }

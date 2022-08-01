@@ -32,14 +32,6 @@ public class Product {
         private BigDecimal freightToPayment;
         private String transportWay;
         private String storehouse;
-        private String manufacturerName;
-        private String manufacturerGroup;
-        private String manufacturerPaymentMethod;
-        private String manufacturerPaymentName;
-        private String manufacturerPaymentId;
-        private String manufacturerRecipient;
-        private String manufacturerPhone;
-        private String manufacturerAddress;
     }
 }
 

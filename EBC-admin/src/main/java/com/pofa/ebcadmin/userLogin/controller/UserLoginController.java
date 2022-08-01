@@ -4,6 +4,7 @@ package com.pofa.ebcadmin.userLogin.controller;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.util.SaResult;
+import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.mysql.cj.xdevapi.JsonArray;
 import com.nimbusds.jose.JOSEException;
@@ -24,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.text.ParseException;
 import java.util.List;
 
-@Api(tags = "用户请求")
+@Api(tags = "用户")
 @Controller
 @RestController
 @RequestMapping("user")
@@ -44,11 +45,11 @@ public class UserLoginController {
     })
     @PostMapping("/login")
     public SaResult userLogin(SysUser.LoginDTO user) throws ParseException, JOSEException {
-        List<UserInfo> userInfos = userService.userLogin(user.getUsername(), user.getPassword());
+        var userInfos = userService.userLogin(user.getUsername(), user.getPassword());
         if (!userInfos.isEmpty()) {
             StpUtil.login(userInfos.get(0).getUid());
             StpUtil.getSession().set("user", userInfos.get(0));
-            return SaResult.ok("success").setData(StpUtil.getTokenInfo());
+            return SaResult.ok("success").setData(new JSONObject().fluentPut("user", userInfos.get(0)).fluentPut("token", StpUtil.getTokenInfo()));
         }
         return SaResult.ok("success").setData("账号或密码错误");
     }
@@ -60,10 +61,10 @@ public class UserLoginController {
             @ApiImplicitParam(name = "password", value = "注册密码", dataType = "String", paramType = "query", dataTypeClass = String.class, example = "123456", required = false),
     })
     @PostMapping("/regist")
-    public SaResult userRegist(SysUser.LoginDTO user) {
-        int code = userService.userRegistry(user.getUsername(), user.getPassword());
+    public SaResult userRegist(SysUser.RegistDTO dto) {
+        var code = userService.userRegistry(dto);
 
-        String data = switch (code) {
+        var data = switch (code) {
             case 1 -> "创建成功";
             case -100 -> "账号已存在";
             case -101 -> "账号格式错误";
@@ -71,9 +72,15 @@ public class UserLoginController {
             default -> "未知错误";
         };
 
-
-        //return new JsonResponse(code, data);
         return SaResult.ok("success").setData(data).setCode(code);
+    }
+
+    @ApiOperation(value = "是否登陆", notes = "检查某个用户是否登陆",
+            httpMethod = "POST")
+    @PostMapping("/isLogin")
+    public SaResult isLogin() {
+        var isLogin = StpUtil.isLogin();
+        return SaResult.ok("success").setData(new JSONObject().fluentPut("isLogin", isLogin));
     }
 
 

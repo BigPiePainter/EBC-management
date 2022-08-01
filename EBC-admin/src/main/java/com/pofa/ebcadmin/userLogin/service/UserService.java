@@ -1,13 +1,14 @@
 package com.pofa.ebcadmin.userLogin.service;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.pofa.ebcadmin.userLogin.dto.SysUser;
 import com.pofa.ebcadmin.userLogin.entity.UserInfo;
 
 import java.util.List;
 
 public interface UserService {
 
-    int userRegistry(String username, String password);
+    int userRegistry(SysUser.RegistDTO dto);
 
     List<UserInfo> userLogin(String username, String password);
 

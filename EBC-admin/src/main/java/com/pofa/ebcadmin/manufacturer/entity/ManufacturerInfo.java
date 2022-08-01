@@ -16,7 +16,7 @@ import java.util.Date;
 @TableName("manufacturers")
 public class ManufacturerInfo {
     private Long uid;
-    private Long product_id;
+    private Long productId;
 
     private String manufacturerName;
     private String manufacturerGroup;
