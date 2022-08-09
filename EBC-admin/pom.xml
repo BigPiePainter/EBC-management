@@ -7,11 +7,13 @@
         <groupId>com.pofa</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <groupId>com.pofa</groupId>
     <artifactId>EBC-admin</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
     <name>EBC-admin</name>
     <description>EBC-admin</description>
+    <version>1.0.0</version>
+
+    <packaging>jar</packaging>
+
     <properties>
         <java.version>17</java.version>
     </properties>
@@ -29,6 +31,14 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 
 
 </project>

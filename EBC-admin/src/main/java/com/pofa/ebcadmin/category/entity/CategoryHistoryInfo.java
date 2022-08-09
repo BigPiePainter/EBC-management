@@ -1,4 +1,4 @@
-package com.pofa.ebcadmin.userLogin.entity;
+package com.pofa.ebcadmin.category.entity;
 
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
@@ -11,20 +11,17 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.util.Date;
 
-
 @Data
 @Accessors(chain = true)
 @Repository
-@TableName("skus")
-public class SkuInfo {
-
+@TableName("categoryhistorys")
+public class CategoryHistoryInfo {
     private Long uid;
-    private Long productId;
-    private Long skuId;
 
-    private String skuName;
-    private BigDecimal skuPrice;
-    private BigDecimal skuCost;
+    private Long categoryId;
+
+    private BigDecimal deduction;
+    private BigDecimal insurance;
 
     private Date startTime;
 

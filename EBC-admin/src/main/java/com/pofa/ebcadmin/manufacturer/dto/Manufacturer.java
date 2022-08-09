@@ -2,6 +2,7 @@ package com.pofa.ebcadmin.manufacturer.dto;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 public class Manufacturer {
@@ -24,6 +25,10 @@ public class Manufacturer {
         private String manufacturerPhone;
         private String manufacturerAddress;
 
+        private BigDecimal freight;
+        private BigDecimal extraRatio;
+        private BigDecimal freightToPayment;
+
         private String note;
     }
 
@@ -42,6 +47,10 @@ public class Manufacturer {
         private String manufacturerRecipient;
         private String manufacturerPhone;
         private String manufacturerAddress;
+
+        private BigDecimal freight;
+        private BigDecimal extraRatio;
+        private BigDecimal freightToPayment;
 
         private String note;
     }

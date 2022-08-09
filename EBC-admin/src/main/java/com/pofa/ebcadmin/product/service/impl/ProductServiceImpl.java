@@ -1,24 +1,22 @@
-package com.pofa.ebcadmin.userLogin.service.impl;
+package com.pofa.ebcadmin.product.service.impl;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.mysql.cj.xdevapi.JsonArray;
-import com.pofa.ebcadmin.userLogin.dao.ProductDao;
-import com.pofa.ebcadmin.userLogin.dto.Product;
-import com.pofa.ebcadmin.userLogin.entity.ProductInfo;
-import com.pofa.ebcadmin.userLogin.service.ProductService;
+import com.pofa.ebcadmin.product.dao.ProductDao;
+import com.pofa.ebcadmin.product.dto.Product;
+import com.pofa.ebcadmin.product.entity.ProductInfo;
+import com.pofa.ebcadmin.product.service.ProductService;
 import com.pofa.ebcadmin.utils.Convert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,24 +35,37 @@ public class ProductServiceImpl implements ProductService {
     public int addProduct(Product.AddDTO dto) {
 
         var wrapper = new QueryWrapper<ProductInfo>().eq("id", dto.getId());
-        List<ProductInfo> productInfos = productDao.selectList(wrapper);
+        var productInfos = productDao.selectList(wrapper);
         if (productInfos.isEmpty()) {
-            return productDao.insert(productInfo.setId(dto.getId())
+            return productDao.insert(productInfo
+                    .setId(dto.getId())
                     .setDepartment(dto.getDepartment())
-                    .setGroupName(dto.getGroupName())
+                    .setTeam(dto.getTeam())
                     .setOwner(dto.getOwner())
                     .setShopName(dto.getShopName())
                     .setProductName(dto.getProductName())
                     .setFirstCategory(dto.getFirstCategory())
-                    .setProductDeduction(dto.getProductDeduction())
-                    .setProductInsurance(dto.getProductInsurance())
-                    .setProductFreight(dto.getProductFreight())
-                    .setExtraRatio(dto.getExtraRatio())
-                    .setFreightToPayment(dto.getFreightToPayment())
                     .setTransportWay(dto.getTransportWay())
-                    .setStorehouse(dto.getStorehouse()));
+                    .setStorehouse(dto.getStorehouse())
+                    .setNote(dto.getNote()));
         }
         return -100;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
+    public int editProduct(Product.EditDTO dto) {
+        return productDao.update(productInfo
+                        .setDepartment(dto.getDepartment())
+                        .setTeam(dto.getTeam())
+                        .setOwner(dto.getOwner())
+                        .setShopName(dto.getShopName())
+                        .setProductName(dto.getProductName())
+                        .setFirstCategory(dto.getFirstCategory())
+                        .setTransportWay(dto.getTransportWay())
+                        .setStorehouse(dto.getStorehouse())
+                        .setNote(dto.getNote()),
+                new UpdateWrapper<ProductInfo>().eq("id", dto.getId()));
     }
 
     @Override
@@ -104,7 +115,7 @@ public class ProductServiceImpl implements ProductService {
 
         var targets = new ArrayList<String>();
         targets.add("department");
-        targets.add("group_name");
+        targets.add("team");
         targets.add("owner");
         targets.add("shop_name");
         targets.add("first_category");
@@ -123,7 +134,7 @@ public class ProductServiceImpl implements ProductService {
             results = productDao.selectList(wrapper);
             results.forEach(item -> array.add(switch (col) {
                 case "department" -> item.getDepartment();
-                case "group_name" -> item.getGroupName();
+                case "team" -> item.getTeam();
                 case "owner" -> item.getOwner();
                 case "shop_name" -> item.getShopName();
                 case "first_category" -> item.getFirstCategory();

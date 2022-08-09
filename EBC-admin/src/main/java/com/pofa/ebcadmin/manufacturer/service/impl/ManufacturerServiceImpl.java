@@ -41,6 +41,9 @@ public class ManufacturerServiceImpl implements ManufacturerService {
                 .setManufacturerRecipient(dto.getManufacturerRecipient())
                 .setManufacturerPhone(dto.getManufacturerPhone())
                 .setManufacturerAddress(dto.getManufacturerAddress())
+                .setFreight(dto.getFreight())
+                .setExtraRatio(dto.getExtraRatio())
+                .setFreightToPayment(dto.getFreightToPayment())
                 .setNote(dto.getNote()));
     }
 
@@ -58,6 +61,9 @@ public class ManufacturerServiceImpl implements ManufacturerService {
                         .setManufacturerRecipient(dto.getManufacturerRecipient())
                         .setManufacturerPhone(dto.getManufacturerPhone())
                         .setManufacturerAddress(dto.getManufacturerAddress())
+                        .setFreight(dto.getFreight())
+                        .setExtraRatio(dto.getExtraRatio())
+                        .setFreightToPayment(dto.getFreightToPayment())
                         .setNote(dto.getNote()),
                 new UpdateWrapper<ManufacturerInfo>().eq("uid", dto.getUid()));
     }

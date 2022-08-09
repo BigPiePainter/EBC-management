@@ -19,6 +19,11 @@ public class TeamInfo {
 
     private String name;
 
+    private String admin;
+
+    @TableField(fill = FieldFill.INSERT)
+    private String note;
+
     @TableField(fill = FieldFill.INSERT)
     private Date createTime;
 
@@ -26,5 +31,5 @@ public class TeamInfo {
     private Date modifyTime;
 
     @TableField(fill = FieldFill.INSERT)
-    private String note;
+    private Boolean deprecated;
 }

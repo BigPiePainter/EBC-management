@@ -1,12 +1,15 @@
-package com.pofa.ebcadmin.userLogin.service;
+package com.pofa.ebcadmin.product.service;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.pofa.ebcadmin.userLogin.dto.Product;
+import com.pofa.ebcadmin.manufacturer.dto.Manufacturer;
+import com.pofa.ebcadmin.product.dto.Product;
 
 import java.util.List;
 
 public interface ProductService {
     int addProduct(Product.AddDTO dto);
+
+    int editProduct(Product.EditDTO dto);
 
     JSONObject getProductsByUserIds(List<Long> idList, Product.GetDTO dto);
 

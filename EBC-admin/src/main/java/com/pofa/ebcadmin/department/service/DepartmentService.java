@@ -10,6 +10,8 @@ public interface DepartmentService {
 
     int addDepartment(Department.AddDTO dto);
 
+    int editDepartment(Department.EditDTO dto);
+
     List<DepartmentInfo> getDepartments();
 
 }

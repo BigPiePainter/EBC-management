@@ -1,10 +1,9 @@
-package com.pofa.ebcadmin.userLogin.dao;
+package com.pofa.ebcadmin.product.dao;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.Constants;
-import com.pofa.ebcadmin.userLogin.entity.ProductInfo;
-import com.pofa.ebcadmin.userLogin.entity.UserInfo;
+import com.pofa.ebcadmin.product.entity.ProductInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;

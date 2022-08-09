@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
@@ -29,7 +30,14 @@ public class ManufacturerInfo {
     private String manufacturerPhone;
     private String manufacturerAddress;
 
+    private BigDecimal freight;
+    private BigDecimal extraRatio;
+    private BigDecimal freightToPayment;
+
     private Date startTime;
+
+    @TableField(fill = FieldFill.INSERT)
+    private String note;
 
     @TableField(fill = FieldFill.INSERT)
     private Date createTime;
@@ -40,6 +48,5 @@ public class ManufacturerInfo {
     @TableField(fill = FieldFill.INSERT)
     private Boolean deprecated;
 
-    @TableField(fill = FieldFill.INSERT)
-    private String note;
+
 }

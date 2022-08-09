@@ -28,6 +28,9 @@ public class UserInfo {
     private String password;
 
     private String nick;
+
+
+    @TableField(fill = FieldFill.INSERT)
     private String note;
 
     @TableField(fill = FieldFill.INSERT)
@@ -35,4 +38,7 @@ public class UserInfo {
 
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private Date modifyTime;
+
+    @TableField(fill = FieldFill.INSERT)
+    private Boolean deprecated;
 }

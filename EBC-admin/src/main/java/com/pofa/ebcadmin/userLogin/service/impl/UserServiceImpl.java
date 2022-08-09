@@ -2,6 +2,9 @@ package com.pofa.ebcadmin.userLogin.service.impl;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.pofa.ebcadmin.team.dto.Team;
+import com.pofa.ebcadmin.team.entity.TeamInfo;
 import com.pofa.ebcadmin.userLogin.dao.UserDao;
 import com.pofa.ebcadmin.userLogin.dto.SysUser;
 import com.pofa.ebcadmin.userLogin.entity.UserInfo;
@@ -57,6 +60,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
+    public int editUser(SysUser.EditDTO dto) {
+        return userDao.update(userInfo
+                        .setCreatorId(dto.getCreatorId())
+                        .setGender(dto.getGender())
+                        .setContact(dto.getContact())
+                        .setPermission(dto.getPermission())
+                        .setUsername(dto.getUsername())
+                        .setPassword(dto.getPassword())
+                        .setNick(dto.getNick())
+                        .setNote(dto.getNote()),
+                new UpdateWrapper<UserInfo>().eq("uid", dto.getUid()));
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
     public List<UserInfo> userLogin(String username, String password) {
         QueryWrapper<UserInfo> wrapper = new QueryWrapper<>();
@@ -95,6 +113,12 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
     public List<UserInfo> getUserInfosByIds(List<Long> users) {
         return userDao.selectList(new QueryWrapper<UserInfo>().in("uid", users));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
+    public List<UserInfo> getAllUserSimplifyInfos() {
+        return userDao.selectList(new QueryWrapper<UserInfo>().select("uid", "username", "nick", "contact", "permission", "note"));
     }
 
     private JSONObject _getUserRelationsWithinAuthorityById(Long id) {

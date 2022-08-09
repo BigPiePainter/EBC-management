@@ -51,6 +51,8 @@ public class ManufacturerController {
     @PostMapping("/modify")
     public SaResult editManufacturer(Manufacturer.EditDTO dto) {
         //List<ManufacturerInfo> userInfos = manufacturerService.userLogin(user.getUsername(), user.getPassword());
+        System.out.println("modify Manufacturer");
+        System.out.println(dto);
         var code = manufacturerService.editManufacturer(dto);
 
         String data = switch (code) {

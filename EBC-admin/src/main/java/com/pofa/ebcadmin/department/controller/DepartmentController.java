@@ -28,10 +28,6 @@ public class DepartmentController {
 
     @ApiOperation(value = "添加部门", notes = "",
             httpMethod = "POST")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "name", value = "部门名称", dataType = "String", paramType = "query", dataTypeClass = String.class, example = "554", required = false),
-            @ApiImplicitParam(name = "note", value = "注释", dataType = "String", paramType = "query", dataTypeClass = String.class, example = "123456", required = false),
-    })
     @PostMapping("/add")
     public SaResult departmentAdd(Department.AddDTO dto) {
 
@@ -40,6 +36,20 @@ public class DepartmentController {
         String data = switch (code) {
             case 1 -> "添加成功";
             case -100 -> "部门已存在";
+            default -> "未知错误";
+        };
+
+        return SaResult.ok("success").setData(data).setCode(code);
+    }
+
+    @ApiOperation(value = "修改部门信息", notes = "",
+            httpMethod = "POST")
+    @PostMapping("/modify")
+    public SaResult editManufacturer(Department.EditDTO dto) {
+        var code = departmentService.editDepartment(dto);
+
+        String data = switch (code) {
+            case 1 -> "修改成功";
             default -> "未知错误";
         };
 

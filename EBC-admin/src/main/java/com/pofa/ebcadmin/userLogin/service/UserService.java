@@ -10,6 +10,8 @@ public interface UserService {
 
     int userRegistry(SysUser.RegistDTO dto);
 
+    int editUser(SysUser.EditDTO dto);
+
     List<UserInfo> userLogin(String username, String password);
 
     JSONObject getUserRelationsWithinAuthorityById(Long id);
@@ -17,4 +19,7 @@ public interface UserService {
     List<Long> getUserIdsWithinAuthorityById(Long id);
 
     List<UserInfo> getUserInfosByIds(List<Long> users);
+
+    List<UserInfo> getAllUserSimplifyInfos();
+
 }

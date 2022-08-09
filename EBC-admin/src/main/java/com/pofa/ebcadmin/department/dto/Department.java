@@ -12,6 +12,15 @@ public class Department {
     @Data
     public static class AddDTO {
         private String name;
+        private String admin;
+        private String note;
+    }
+
+    @Data
+    public static class EditDTO {
+        private Long uid;
+        private String name;
+        private String admin;
         private String note;
     }
 }

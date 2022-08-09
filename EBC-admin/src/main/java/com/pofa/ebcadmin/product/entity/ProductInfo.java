@@ -1,11 +1,12 @@
-package com.pofa.ebcadmin.userLogin.entity;
+package com.pofa.ebcadmin.product.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
 import java.util.Date;
 
 
@@ -15,23 +16,31 @@ import java.util.Date;
 @TableName("products")
 public class ProductInfo {
     private Long id;
-    private String department;
-    private String groupName;
     private Long owner;
+
+    private Long department;
+    private Long team;
+
+    private Long firstCategory;
+
     private String shopName;
-    private String firstCategory;
 
     private String productName;
-    private BigDecimal productDeduction;
-    private BigDecimal productInsurance;
-    private BigDecimal productFreight;
 
-    private BigDecimal extraRatio;
-    private BigDecimal freightToPayment;
+
     private String transportWay;
     private String storehouse;
 
 
+    @TableField(fill = FieldFill.INSERT)
+    private String note;
+
+    @TableField(fill = FieldFill.INSERT)
     private Date createTime;
+
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private Date modifyTime;
+
+    @TableField(fill = FieldFill.INSERT)
+    private Boolean deprecated;
 }

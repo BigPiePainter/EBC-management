@@ -1,4 +1,4 @@
-package com.pofa.ebcadmin.department.entity;
+package com.pofa.ebcadmin.category.entity;
 
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
@@ -8,16 +8,20 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
 @Accessors(chain = true)
 @Repository
-@TableName("departments")
-public class DepartmentInfo {
+@TableName("categorys")
+public class CategoryInfo {
     private Long uid;
 
     private String name;
+
+    @TableField(fill = FieldFill.INSERT)
+    private String note;
 
     @TableField(fill = FieldFill.INSERT)
     private Date createTime;
@@ -26,5 +30,7 @@ public class DepartmentInfo {
     private Date modifyTime;
 
     @TableField(fill = FieldFill.INSERT)
-    private String note;
+    private Boolean deprecated;
+
+
 }

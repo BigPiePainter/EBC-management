@@ -69,7 +69,7 @@ public class SkuServiceImpl implements SkuService {
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
     public int deprecateSkuByUid(Long uid) {
-        return skuDao.update(null, new UpdateWrapper<SkuInfo>().eq("uid", uid).set("deprecated", true).set("delete_time", new Date()));
+        return skuDao.update(null, new UpdateWrapper<SkuInfo>().eq("uid", uid).set("deprecated", true));
     }
 
     @Override
