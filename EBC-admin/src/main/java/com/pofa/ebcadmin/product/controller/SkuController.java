@@ -1,11 +1,11 @@
-package com.pofa.ebcadmin.userLogin.controller;
+package com.pofa.ebcadmin.product.controller;
 
 
 import cn.dev33.satoken.util.SaResult;
 import com.alibaba.fastjson2.JSONObject;
 import com.pofa.ebcadmin.product.service.ProductService;
-import com.pofa.ebcadmin.userLogin.dto.Sku;
-import com.pofa.ebcadmin.userLogin.service.SkuService;
+import com.pofa.ebcadmin.product.dto.Sku;
+import com.pofa.ebcadmin.product.service.SkuService;
 import com.pofa.ebcadmin.userLogin.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -24,7 +24,7 @@ import java.util.Date;
 @Controller
 @RestController
 @RequestMapping("sku")
-public class SkuInfoController {
+public class SkuController {
 
 
     @Autowired

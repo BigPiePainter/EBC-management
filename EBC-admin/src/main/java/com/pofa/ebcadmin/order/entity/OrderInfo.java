@@ -1,4 +1,4 @@
-package com.pofa.ebcadmin.userLogin.entity;
+package com.pofa.ebcadmin.order.entity;
 
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
@@ -11,20 +11,28 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.util.Date;
 
-
 @Data
 @Accessors(chain = true)
 @Repository
-@TableName("skus")
-public class SkuInfo {
-
+@TableName("manufacturers")
+public class OrderInfo {
     private Long uid;
     private Long productId;
-    private Long skuId;
 
-    private String skuName;
-    private BigDecimal skuPrice;
-    private BigDecimal skuCost;
+    private String manufacturerName;
+    private String manufacturerGroup;
+
+    private String manufacturerPaymentMethod;
+    private String manufacturerPaymentName;
+    private String manufacturerPaymentId;
+
+    private String manufacturerRecipient;
+    private String manufacturerPhone;
+    private String manufacturerAddress;
+
+    private BigDecimal freight;
+    private BigDecimal extraRatio;
+    private BigDecimal freightToPayment;
 
     private Date startTime;
 

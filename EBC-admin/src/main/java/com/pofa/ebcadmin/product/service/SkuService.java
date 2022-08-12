@@ -1,7 +1,7 @@
-package com.pofa.ebcadmin.userLogin.service;
+package com.pofa.ebcadmin.product.service;
 
 import com.alibaba.fastjson2.JSONArray;
-import com.pofa.ebcadmin.userLogin.entity.SkuInfo;
+import com.pofa.ebcadmin.product.entity.SkuInfo;
 
 import java.util.List;
 

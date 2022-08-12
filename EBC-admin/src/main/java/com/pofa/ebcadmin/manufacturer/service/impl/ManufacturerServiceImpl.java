@@ -1,19 +1,16 @@
 package com.pofa.ebcadmin.manufacturer.service.impl;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.pofa.ebcadmin.manufacturer.dao.ManufacturerDao;
 import com.pofa.ebcadmin.manufacturer.dto.Manufacturer;
 import com.pofa.ebcadmin.manufacturer.entity.ManufacturerInfo;
 import com.pofa.ebcadmin.manufacturer.service.ManufacturerService;
-import com.pofa.ebcadmin.userLogin.entity.SkuInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 

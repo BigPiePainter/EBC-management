@@ -1,14 +1,12 @@
-package com.pofa.ebcadmin.userLogin.service.impl;
+package com.pofa.ebcadmin.product.service.impl;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.mysql.cj.xdevapi.JsonArray;
-import com.pofa.ebcadmin.userLogin.dao.SkuDao;
-import com.pofa.ebcadmin.userLogin.entity.SkuInfo;
-import com.pofa.ebcadmin.userLogin.service.SkuService;
+import com.pofa.ebcadmin.product.dao.SkuDao;
+import com.pofa.ebcadmin.product.entity.SkuInfo;
+import com.pofa.ebcadmin.product.service.SkuService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.origin.SystemEnvironmentOrigin;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;

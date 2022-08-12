@@ -1,7 +1,7 @@
-package com.pofa.ebcadmin.userLogin.dao;
+package com.pofa.ebcadmin.product.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.pofa.ebcadmin.userLogin.entity.SkuInfo;
+import com.pofa.ebcadmin.product.entity.SkuInfo;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.Collection;

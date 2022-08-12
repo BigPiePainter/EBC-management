@@ -1,8 +1,8 @@
-package com.pofa.ebcadmin.userLogin.dto;
+package com.pofa.ebcadmin.product.dto;
 
 import lombok.Data;
 
-public class Sku {
+public class Ascription {
     @Data
     public static class getDTO {
         private Long productId;

@@ -2,8 +2,6 @@ package com.pofa.ebcadmin.team.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.pofa.ebcadmin.department.dto.Department;
-import com.pofa.ebcadmin.department.entity.DepartmentInfo;
 import com.pofa.ebcadmin.team.dao.TeamDao;
 import com.pofa.ebcadmin.team.dto.Team;
 import com.pofa.ebcadmin.team.entity.TeamInfo;

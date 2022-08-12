@@ -3,6 +3,7 @@ package com.pofa.ebcadmin.product.dto;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 public class Product {
 
@@ -41,6 +42,8 @@ public class Product {
         private String productName;
         private String transportWay;
         private String storehouse;
+
+        private Date startTime;
 
         private String note;
     }

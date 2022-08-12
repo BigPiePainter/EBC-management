@@ -6,9 +6,12 @@ import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.pofa.ebcadmin.product.dao.AscriptionDao;
 import com.pofa.ebcadmin.product.dao.ProductDao;
 import com.pofa.ebcadmin.product.dto.Product;
+import com.pofa.ebcadmin.product.entity.AscriptionInfo;
 import com.pofa.ebcadmin.product.entity.ProductInfo;
+import com.pofa.ebcadmin.product.service.AscriptionService;
 import com.pofa.ebcadmin.product.service.ProductService;
 import com.pofa.ebcadmin.utils.Convert;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +20,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -27,7 +31,13 @@ public class ProductServiceImpl implements ProductService {
     public ProductDao productDao;
 
     @Autowired
+    public AscriptionDao ascriptionDao;
+
+    @Autowired
     public ProductInfo productInfo;
+
+    @Autowired
+    public AscriptionInfo ascriptionInfo;
 
 
     @Override
@@ -37,7 +47,10 @@ public class ProductServiceImpl implements ProductService {
         var wrapper = new QueryWrapper<ProductInfo>().eq("id", dto.getId());
         var productInfos = productDao.selectList(wrapper);
         if (productInfos.isEmpty()) {
-            return productDao.insert(productInfo
+            //新建商品
+            var date = new Date();
+            date.setTime(0);
+            productDao.insert(productInfo
                     .setId(dto.getId())
                     .setDepartment(dto.getDepartment())
                     .setTeam(dto.getTeam())
@@ -48,6 +61,15 @@ public class ProductServiceImpl implements ProductService {
                     .setTransportWay(dto.getTransportWay())
                     .setStorehouse(dto.getStorehouse())
                     .setNote(dto.getNote()));
+            //
+            ascriptionDao.insert(ascriptionInfo
+                    .setProduct(dto.getId())
+                    .setDepartment(dto.getDepartment())
+                    .setTeam(dto.getTeam())
+                    .setOwner(dto.getOwner())
+                    .setStartTime(date)
+                    .setNote("初始归属"));
+
         }
         return -100;
     }
@@ -55,17 +77,34 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
     public int editProduct(Product.EditDTO dto) {
-        return productDao.update(productInfo
-                        .setDepartment(dto.getDepartment())
-                        .setTeam(dto.getTeam())
-                        .setOwner(dto.getOwner())
-                        .setShopName(dto.getShopName())
-                        .setProductName(dto.getProductName())
-                        .setFirstCategory(dto.getFirstCategory())
-                        .setTransportWay(dto.getTransportWay())
-                        .setStorehouse(dto.getStorehouse())
-                        .setNote(dto.getNote()),
-                new UpdateWrapper<ProductInfo>().eq("id", dto.getId()));
+        if (dto.getStartTime() != null) {
+            productDao.update(productInfo
+                            .setDepartment(dto.getDepartment())
+                            .setTeam(dto.getTeam())
+                            .setOwner(dto.getOwner())
+                            .setShopName(dto.getShopName())
+                            .setProductName(dto.getProductName())
+                            .setFirstCategory(dto.getFirstCategory())
+                            .setTransportWay(dto.getTransportWay())
+                            .setStorehouse(dto.getStorehouse())
+                            .setNote(dto.getNote()),
+                    new UpdateWrapper<ProductInfo>().eq("id", dto.getId()));
+            return ascriptionDao.insert(ascriptionInfo
+                    .setProduct(dto.getId())
+                    .setDepartment(dto.getDepartment())
+                    .setTeam(dto.getTeam())
+                    .setOwner(dto.getOwner())
+                    .setStartTime(dto.getStartTime()));
+        } else {
+            return productDao.update(productInfo
+                            .setShopName(dto.getShopName())
+                            .setProductName(dto.getProductName())
+                            .setFirstCategory(dto.getFirstCategory())
+                            .setTransportWay(dto.getTransportWay())
+                            .setStorehouse(dto.getStorehouse())
+                            .setNote(dto.getNote()),
+                    new UpdateWrapper<ProductInfo>().eq("id", dto.getId()));
+        }
     }
 
     @Override

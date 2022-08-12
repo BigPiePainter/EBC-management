@@ -1,0 +1,14 @@
+package com.pofa.ebcadmin.order.orderUtils;
+
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+
+@Data
+@Accessors(chain = true)
+public class FileState {
+    private String fileName;
+    private String state;
+
+    private Long size;
+}
