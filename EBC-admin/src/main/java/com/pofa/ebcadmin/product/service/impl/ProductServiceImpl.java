@@ -78,10 +78,28 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
     public int editProduct(Product.EditDTO dto) {
         if (dto.getStartTime() != null) {
-            productDao.update(productInfo
-                            .setDepartment(dto.getDepartment())
-                            .setTeam(dto.getTeam())
-                            .setOwner(dto.getOwner())
+
+            ascriptionDao.insert(ascriptionInfo
+                    .setProduct(dto.getId())
+                    .setDepartment(dto.getDepartment())
+                    .setTeam(dto.getTeam())
+                    .setOwner(dto.getOwner())
+                    .setStartTime(dto.getStartTime())
+                    .setNote(""));
+
+            var list = ascriptionDao.selectList(
+                    new QueryWrapper<AscriptionInfo>()
+                            .select("department", "team", "owner")
+                            .eq("product", dto.getId())
+                            .orderByDesc("start_time")
+                            .orderByDesc("create_time")
+                            .last("limit 1")
+            );
+
+            return productDao.update(productInfo
+                            .setDepartment(list.get(0).getDepartment())
+                            .setTeam(list.get(0).getTeam())
+                            .setOwner(list.get(0).getOwner())
                             .setShopName(dto.getShopName())
                             .setProductName(dto.getProductName())
                             .setFirstCategory(dto.getFirstCategory())
@@ -89,12 +107,6 @@ public class ProductServiceImpl implements ProductService {
                             .setStorehouse(dto.getStorehouse())
                             .setNote(dto.getNote()),
                     new UpdateWrapper<ProductInfo>().eq("id", dto.getId()));
-            return ascriptionDao.insert(ascriptionInfo
-                    .setProduct(dto.getId())
-                    .setDepartment(dto.getDepartment())
-                    .setTeam(dto.getTeam())
-                    .setOwner(dto.getOwner())
-                    .setStartTime(dto.getStartTime()));
         } else {
             return productDao.update(productInfo
                             .setShopName(dto.getShopName())

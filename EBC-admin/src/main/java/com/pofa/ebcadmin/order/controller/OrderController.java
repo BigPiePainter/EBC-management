@@ -32,6 +32,7 @@ public class OrderController {
     public SaResult fileUpload(MultipartFile file) {
         System.out.println(file);
         orderService.fileProcess(file);
+        System.out.println("返回上传结果");
         return SaResult.ok("success");
     }
 

@@ -23,11 +23,6 @@ public class Category {
 
         private String name;
 
-        private BigDecimal deduction;
-        private BigDecimal insurance;
-
-        private Date startTime;
-
         private String note;
     }
 

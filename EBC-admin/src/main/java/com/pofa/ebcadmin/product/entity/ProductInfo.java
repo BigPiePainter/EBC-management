@@ -31,6 +31,7 @@ public class ProductInfo {
     private String transportWay;
     private String storehouse;
 
+    private Date endTime;
 
     @TableField(fill = FieldFill.INSERT)
     private String note;

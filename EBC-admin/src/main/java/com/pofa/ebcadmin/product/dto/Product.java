@@ -16,6 +16,7 @@ public class Product {
 
         private String match;
     }
+
     @Data
     public static class AddDTO {
         private Long id;

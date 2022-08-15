@@ -6,6 +6,8 @@ import com.pofa.ebcadmin.product.entity.AscriptionInfo;
 import com.pofa.ebcadmin.product.service.AscriptionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -20,6 +22,7 @@ public class AscriptionServiceImpl implements AscriptionService {
 
 
     @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
     public int addAscriptionInfo() {
         return ascriptionDao.insert(ascriptionInfo
                 .setProduct(1L)
@@ -32,11 +35,13 @@ public class AscriptionServiceImpl implements AscriptionService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
     public List<AscriptionInfo> getAscriptionInfosByProductId(Long productId) {
         return ascriptionDao.selectList(new QueryWrapper<AscriptionInfo>().eq("product", productId));
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
     public int deleteAscriptionInfoByUid(Long uid) {
         return 0;
     }

@@ -34,6 +34,7 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Override
+    @Async
     public void fileProcess(MultipartFile file) {
         var state = new FileState().setFileName(file.getOriginalFilename()).setSize(file.getSize()).setState("waiting");
         FileStateManager.newFile(state.getFileName(), state);
@@ -59,7 +60,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
-    @Async
+
     public synchronized void _fileProcess(MultipartFile file, FileState state, InputStream inputStream) {
         System.out.println(state.getFileName() + " 开始处理");
         state.setState("processing");

@@ -55,7 +55,7 @@ public class ProductController {
     @PostMapping("/modify")
     public SaResult editProduct(Product.EditDTO dto) {
 
-        System.out.println("EDIT TEST");
+        System.out.println("Product EDIT TEST");
         System.out.println(dto);
         var code = productService.editProduct(dto);
 
