@@ -42,6 +42,7 @@ public class ProductController {
         String data = switch (code) {
             case 1 -> "创建成功";
             case -100 -> "当前商品ID已存在";
+            case -101 -> "商品ID过长";
             default -> "未知错误";
         };
 

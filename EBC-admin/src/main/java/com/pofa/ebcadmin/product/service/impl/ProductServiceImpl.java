@@ -43,7 +43,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
     public int addProduct(Product.AddDTO dto) {
-
+        if (dto.getId() > 10000000000000000L) return -101;
         var wrapper = new QueryWrapper<ProductInfo>().eq("id", dto.getId());
         var productInfos = productDao.selectList(wrapper);
         if (productInfos.isEmpty()) {

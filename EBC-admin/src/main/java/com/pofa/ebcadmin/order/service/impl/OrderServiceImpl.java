@@ -127,22 +127,107 @@ public class OrderServiceImpl implements OrderService {
 
     public void _fakeOrderFileProcess(FileState state, Sheet sheet) {
         var totalRow = sheet.getLastRowNum();
+
+
+        //判断表格信息合法性
         Row row;
+        Cell cellA, cellB, cellC, cellD, cellE;
+        CellType typeA, typeB, typeC, typeD, typeE;
+
+
+        var touchBottom = false;
         var wrong = false;
         for (int i = 0; i < totalRow; i++) {
             row = sheet.getRow(i);
-            //判断表格信息合法性
 
-            //判断是不是空Row
+            System.out.println(i);
+
+            cellA = row.getCell(2);
+            cellB = row.getCell(7);
+            cellC = row.getCell(9);
+            cellD = row.getCell(10);
+            cellE = row.getCell(11);
+
+            if (touchBottom) {
+                if (null != cellA){
+                    typeA = cellA.getCellType();
+                    if (typeA != CellType.BLANK){
+                        System.out.println("有问题");
+                        wrong = true;
+                        break;
+                    }
+                }
+                if (null != cellA){
+                    typeA = cellA.getCellType();
+                    if (typeA != CellType.BLANK){
+                        System.out.println("有问题");
+                        wrong = true;
+                        break;
+                    }
+                }
+                if (null != cellA){
+                    typeA = cellA.getCellType();
+                    if (typeA != CellType.BLANK){
+                        System.out.println("有问题");
+                        wrong = true;
+                        break;
+                    }
+                }
+                if (null != cellA){
+                    typeA = cellA.getCellType();
+                    if (typeA != CellType.BLANK){
+                        System.out.println("有问题");
+                        wrong = true;
+                        break;
+                    }
+                }
+                if (null != cellA){
+                    typeA = cellA.getCellType();
+                    if (typeA != CellType.BLANK){
+                        System.out.println("有问题");
+                        wrong = true;
+                        break;
+                    }
+                }
 
 
-            if (row.getCell(2).getCellType() != CellType.STRING){
+            } else {
+                if (null == cellA || null == cellB || null == cellC || null == cellD || null == cellE) {
+                    System.out.println("TouchButtom");
+                    touchBottom = true;
+                    continue;
+                }
 
+                typeA = cellA.getCellType();
+                typeB = cellB.getCellType();
+                typeC = cellC.getCellType();
+                typeD = cellD.getCellType();
+                typeE = cellE.getCellType();
 
+                System.out.println(typeA);
+                System.out.println(typeB);
+                System.out.println(typeC);
+                System.out.println(typeD);
+                System.out.println(typeE);
+
+                if (typeA == CellType.BLANK && typeB == CellType.BLANK && typeC == CellType.BLANK && typeD == CellType.BLANK && typeE == CellType.BLANK) {
+                    System.out.println("TouchButtom");
+                    touchBottom = true;
+                    continue;
+                }
             }
 
 
+        }
 
+
+        System.out.println("校验完毕");
+        System.out.println(wrong);
+
+        if (wrong){
+
+
+            return;
         }
 
     }
