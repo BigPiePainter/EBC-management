@@ -10,14 +10,11 @@ import com.pofa.ebcadmin.category.entity.CategoryInfo;
 import com.pofa.ebcadmin.category.service.CategoryService;
 import com.pofa.ebcadmin.product.dao.ProductDao;
 import com.pofa.ebcadmin.product.entity.ProductInfo;
-import com.pofa.ebcadmin.product.entity.SkuInfo;
-import com.pofa.ebcadmin.product.service.impl.ProductServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.List;
 
 @Service
@@ -57,9 +54,11 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
     public int deleteCategoryByUid(Long uid) {
-        List category = productDao.selectList(new QueryWrapper<ProductInfo>().select("id").eq("first_category", uid).last("limit 1"));
-        if (category.isEmpty()) {
-            return categoryDao.delete(new QueryWrapper<CategoryInfo>().eq("uid", uid));
+        var categoryList = productDao.selectList(new QueryWrapper<ProductInfo>().select("id").eq("first_category", uid).last("limit 1"));
+        if (categoryList.isEmpty()) {
+            categoryDao.delete(new QueryWrapper<CategoryInfo>().eq("uid", uid));
+            categoryHistoryDao.delete(new QueryWrapper<CategoryHistoryInfo>().eq("uid", uid));
+            return 1;
         } else {
             return -1;
         }

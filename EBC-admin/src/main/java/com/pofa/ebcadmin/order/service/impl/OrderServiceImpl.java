@@ -67,12 +67,19 @@ public class OrderServiceImpl implements OrderService {
     public synchronized void _fileProcess(FileState state, InputStream inputStream) throws IOException {
         System.out.println(state.getFileName() + " 开始处理");
 
-        state.setState("processing");
+        state.setCode(1); //processing
+        state.setState("文件打开中");
 
         try (Workbook workbook = WorkbookFactory.create(inputStream)) {
             System.out.println("打开成功");
             var sheet = workbook.getSheetAt(0);
             var topRow = sheet.getRow(0);
+
+            if (null == topRow) {
+                state.setCode(-1); //error
+                state.setState("没有匹配到任何文件类型");
+                return;
+            }
 
 
             //识别上传的订单类型
@@ -83,8 +90,10 @@ public class OrderServiceImpl implements OrderService {
             col = 0;
             wrong = false;
             for (var header : orderHeader) {
-                System.out.println(header);
-                System.out.println(topRow.getCell(col).getStringCellValue());
+                if (null == topRow.getCell(col) || topRow.getCell(col).getCellType() != CellType.STRING) {
+                    wrong = true;
+                    break;
+                }
                 if (!topRow.getCell(col++).getStringCellValue().equals(header)) {
                     wrong = true;
                     break;
@@ -99,6 +108,10 @@ public class OrderServiceImpl implements OrderService {
             col = 0;
             wrong = false;
             for (var header : fakeOrderHeader) {
+                if (null == topRow.getCell(col) || topRow.getCell(col).getCellType() != CellType.STRING) {
+                    wrong = true;
+                    break;
+                }
                 if (!topRow.getCell(col++).getStringCellValue().equals(header)) {
                     wrong = true;
                     break;
@@ -109,10 +122,12 @@ public class OrderServiceImpl implements OrderService {
                 return;
             }
 
-
+            state.setCode(-1); //error
             state.setState("没有匹配到任何文件类型");
         } catch (IOException e) {
             e.printStackTrace();
+            state.setCode(-1); //error
+            state.setState("Excel 文件打开失败");
             System.out.println("Excel 文件打开失败");
             return;
         }
@@ -121,23 +136,27 @@ public class OrderServiceImpl implements OrderService {
 
 
     public void _orderFileProcess(FileState state, Sheet sheet) {
+        state.setCode(1); //processing
+        state.setState("解析中（补单）");
 
-
+        state.setCode(2); //成功
+        state.setState("成功");
     }
 
     public void _fakeOrderFileProcess(FileState state, Sheet sheet) {
-        var totalRow = sheet.getLastRowNum();
+        state.setCode(1); //processing
+        state.setState("解析中（补单）");
 
+        var totalRow = sheet.getLastRowNum();
 
         //判断表格信息合法性
         Row row;
         Cell cellA, cellB, cellC, cellD, cellE;
         CellType typeA, typeB, typeC, typeD, typeE;
 
-
         var touchBottom = false;
         var wrong = false;
-        for (int i = 0; i < totalRow; i++) {
+        for (var i = 0; i < totalRow; i++) {
             row = sheet.getRow(i);
 
             System.out.println(i);
@@ -149,43 +168,48 @@ public class OrderServiceImpl implements OrderService {
             cellE = row.getCell(11);
 
             if (touchBottom) {
-                if (null != cellA){
+                if (null != cellA) {
                     typeA = cellA.getCellType();
-                    if (typeA != CellType.BLANK){
+                    if (typeA != CellType.BLANK) {
                         System.out.println("有问题");
                         wrong = true;
+                        state.setState("第" + i + "行，出现意料之外的内容");
                         break;
                     }
                 }
-                if (null != cellA){
-                    typeA = cellA.getCellType();
-                    if (typeA != CellType.BLANK){
+                if (null != cellB) {
+                    typeB = cellB.getCellType();
+                    if (typeB != CellType.BLANK) {
                         System.out.println("有问题");
                         wrong = true;
+                        state.setState("第" + i + "行，出现意料之外的内容");
                         break;
                     }
                 }
-                if (null != cellA){
-                    typeA = cellA.getCellType();
-                    if (typeA != CellType.BLANK){
+                if (null != cellC) {
+                    typeC = cellC.getCellType();
+                    if (typeC != CellType.BLANK) {
                         System.out.println("有问题");
                         wrong = true;
+                        state.setState("第" + i + "行，出现意料之外的内容");
                         break;
                     }
                 }
-                if (null != cellA){
-                    typeA = cellA.getCellType();
-                    if (typeA != CellType.BLANK){
+                if (null != cellD) {
+                    typeD = cellD.getCellType();
+                    if (typeD != CellType.BLANK) {
                         System.out.println("有问题");
                         wrong = true;
+                        state.setState("第" + i + "行，出现意料之外的内容");
                         break;
                     }
                 }
-                if (null != cellA){
-                    typeA = cellA.getCellType();
-                    if (typeA != CellType.BLANK){
+                if (null != cellE) {
+                    typeE = cellE.getCellType();
+                    if (typeE != CellType.BLANK) {
                         System.out.println("有问题");
                         wrong = true;
+                        state.setState("第" + i + "行，出现意料之外的内容");
                         break;
                     }
                 }
@@ -215,6 +239,13 @@ public class OrderServiceImpl implements OrderService {
                     touchBottom = true;
                     continue;
                 }
+
+                if (typeA == CellType.BLANK || typeB == CellType.BLANK || typeC == CellType.BLANK || typeD == CellType.BLANK || typeE == CellType.BLANK) {
+                    System.out.println("有问题");
+                    wrong = true;
+                    state.setState("第" + i + "行，疑似出现数据丢失");
+                    break;
+                }
             }
 
 
@@ -224,12 +255,14 @@ public class OrderServiceImpl implements OrderService {
         System.out.println("校验完毕");
         System.out.println(wrong);
 
-        if (wrong){
-
-
+        if (wrong) {
+            state.setCode(-1);
             return;
         }
 
+
+        state.setCode(2); //成功
+        state.setState("成功");
     }
 
 
