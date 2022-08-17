@@ -56,8 +56,8 @@ public class CategoryServiceImpl implements CategoryService {
     public int deleteCategoryByUid(Long uid) {
         var categoryList = productDao.selectList(new QueryWrapper<ProductInfo>().select("id").eq("first_category", uid).last("limit 1"));
         if (categoryList.isEmpty()) {
+            categoryHistoryDao.delete(new QueryWrapper<CategoryHistoryInfo>().eq("category_id", uid));
             categoryDao.delete(new QueryWrapper<CategoryInfo>().eq("uid", uid));
-            categoryHistoryDao.delete(new QueryWrapper<CategoryHistoryInfo>().eq("uid", uid));
             return 1;
         } else {
             return -1;
