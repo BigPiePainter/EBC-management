@@ -16,6 +16,6 @@ public class Sku {
 
     @Data
     public static class deleteDTO {
-        private Long uid;
+        private String uids;
     }
 }

@@ -11,7 +11,7 @@ public interface SkuService {
 
     List<SkuInfo> getDeprecatedSkusByProductId(Long productId);
 
-    int deprecateSkuByUid(Long uid);
+    int deprecateSkuByUids(String uids);
 
     int deleteSkuByUid(Long uid);
 }

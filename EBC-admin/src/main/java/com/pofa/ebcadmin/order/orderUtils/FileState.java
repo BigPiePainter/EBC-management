@@ -10,5 +10,7 @@ public class FileState {
     private String fileName;
     private String state;
 
+    private int code;
+
     private Long size;
 }

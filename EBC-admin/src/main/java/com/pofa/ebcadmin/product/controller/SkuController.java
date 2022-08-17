@@ -45,9 +45,19 @@ public class SkuController {
 
         System.out.println("addSkus TEST");
         var code = skuService.addSkus(json.getJSONArray("data"));
+        System.out.println(code);
 
+        var data = "";
 
-        return SaResult.ok("success").setData("。。。！？");
+        if (code > 0) {
+            data = "成功上传" + code + "条SKU";
+        } else {
+            data = switch (code) {
+                default -> "未知错误";
+            };
+        }
+
+        return SaResult.ok("success").setData(data).setCode(code);
     }
 
     @ApiOperation(value = "读取SKU", notes = "根据商品ID", httpMethod = "POST")
@@ -65,22 +75,25 @@ public class SkuController {
 
     @ApiOperation(value = "删除SKU", notes = "将SKU挪如回收站", httpMethod = "POST")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "uid", value = "SKU唯一UID", dataType = "Long", paramType = "query", dataTypeClass = Long.class, example = "1000000", required = false),
+            @ApiImplicitParam(name = "uids", value = "要删除的SKU的UID，用英文逗号隔开", dataType = "String", paramType = "query", dataTypeClass = String.class, example = "1000,1001", required = false),
     })
     @PostMapping("/delete")
     public SaResult deleteSku(Sku.deleteDTO dto) {
         System.out.println("deleteSku TEST");
-        System.out.println(new Date().getTime());
 
+        var code = skuService.deprecateSkuByUids(dto.getUids());
 
-        var code = skuService.deprecateSkuByUid(dto.getUid());
-        System.out.println(new Date().getTime());
+        System.out.println(code);
 
+        String data;
+        if (code > 0) {
+            data = "成功删除" + code + "条SKU";
+        } else {
+            data = switch (code) {
+                default -> "未知错误";
+            };
+        }
 
-        String data = switch (code) {
-            case 1 -> "删除成功";
-            default -> "未知错误";
-        };
 
         return SaResult.ok("success").setData(data).setCode(code);
     }

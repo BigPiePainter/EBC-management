@@ -29,7 +29,7 @@ public class SkuServiceImpl implements SkuService {
         System.out.println(new Date().getTime());
 
         var list = new ArrayList<SkuInfo>();
-        var code = 0;
+        var count = 0;
         for (int i = 0; i < skus.size(); i++) {
             var sku = skus.getJSONArray(i);
             list.add(new SkuInfo()
@@ -41,15 +41,15 @@ public class SkuServiceImpl implements SkuService {
                     .setStartTime(sku.getDate(5))
             );
             if ((i + 1) % 3000 == 0) {
-                code = skuDao.insertBatchSomeColumn(list);
+                count += skuDao.insertBatchSomeColumn(list);
                 list.clear();
             }
         }
 
         if (!list.isEmpty()) {
-            code = skuDao.insertBatchSomeColumn(list);
+            count += skuDao.insertBatchSomeColumn(list);
         }
-        return code;
+        return count;
     }
 
     @Override
@@ -66,8 +66,9 @@ public class SkuServiceImpl implements SkuService {
 
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
-    public int deprecateSkuByUid(Long uid) {
-        return skuDao.update(null, new UpdateWrapper<SkuInfo>().eq("uid", uid).set("deprecated", true));
+    public int deprecateSkuByUids(String uids) {
+        var _uids = uids.split(",");
+        return skuDao.update(null, new UpdateWrapper<SkuInfo>().in("uid", List.of(_uids)).set("deprecated", true));
     }
 
     @Override
