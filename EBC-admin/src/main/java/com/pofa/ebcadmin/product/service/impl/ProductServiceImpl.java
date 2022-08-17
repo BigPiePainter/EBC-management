@@ -69,7 +69,7 @@ public class ProductServiceImpl implements ProductService {
                     .setOwner(dto.getOwner())
                     .setStartTime(date)
                     .setNote("初始归属"));
-
+            return 1;
         }
         return -100;
     }
@@ -108,7 +108,7 @@ public class ProductServiceImpl implements ProductService {
                             .setNote(dto.getNote()),
                     new UpdateWrapper<ProductInfo>().eq("id", dto.getId()));
         } else {
-            return productDao.update(productInfo
+            return productDao.update(new ProductInfo()
                             .setShopName(dto.getShopName())
                             .setProductName(dto.getProductName())
                             .setFirstCategory(dto.getFirstCategory())

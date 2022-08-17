@@ -40,6 +40,39 @@ public class CategoryController {
         return SaResult.ok("success").setData(data).setCode(code);
     }
 
+    @ApiOperation(value = "删除一级类目信息", notes = "",
+            httpMethod = "POST")
+    @PostMapping("/delete")
+    public SaResult deleteCategory(Category.DeleteDTO dto) {
+        System.out.println("deleteCategory Test");
+        System.out.println(dto);
+        var code = categoryService.deleteCategoryByUid(dto.getUid());
+
+        String data = switch (code) {
+            case 1 -> "删除成功";
+            case -1 -> "该一级类目正在被使用，无法删除";
+            default -> "未知错误";
+        };
+
+        return SaResult.ok("success").setData(data).setCode(code);
+    }
+
+    @ApiOperation(value = "删除一级类目信息", notes = "",
+            httpMethod = "POST")
+    @PostMapping("/deleteHistory")
+    public SaResult deleteCategoryHistory(Category.DeleteHistoryDTO dto) {
+        System.out.println("deleteCategoryHistory Test");
+        System.out.println(dto);
+        var code = categoryService.deleteCategoryHistoryByUid(dto.getUid());
+
+        String data = switch (code) {
+            case 1 -> "删除成功";
+            default -> "未知错误";
+        };
+
+        return SaResult.ok("success").setData(data).setCode(code);
+    }
+
     @ApiOperation(value = "修改一级类目信息", notes = "根据UID",
             httpMethod = "POST")
     @PostMapping("/modify")

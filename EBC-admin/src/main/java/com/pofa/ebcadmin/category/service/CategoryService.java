@@ -11,7 +11,11 @@ public interface CategoryService {
 
     int addCategory(Category.AddDTO dto);
 
+    int deleteCategoryByUid(Long uid);
+
     int editCategory(Category.EditDTO dto);
+
+
 
 
     List<CategoryHistoryInfo> getCategoryHistorys(Category.GetHistoryDTO dto);
@@ -19,5 +23,8 @@ public interface CategoryService {
     int addCategoryHistory(Category.AddHistoryDTO dto);
 
     int editCategoryHistory(Category.EditHistoryDTO dto);
+
+    int deleteCategoryHistoryByUid(Long uid);
+
 
 }

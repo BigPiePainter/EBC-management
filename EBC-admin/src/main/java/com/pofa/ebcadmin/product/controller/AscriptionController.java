@@ -31,8 +31,8 @@ public class AscriptionController {
 
     @ApiOperation(value = "读取商品归属信息", notes = "根据商品ID", httpMethod = "POST")
     @PostMapping("/get")
-    public SaResult getSkus(Ascription.getDTO dto) {
-        System.out.println("getSkus TEST");
+    public SaResult getAscriptions(Ascription.getDTO dto) {
+        System.out.println("getAscriptions TEST");
         var ascriptions = ascriptionService.getAscriptionInfosByProductId(dto.getProductId());
         return SaResult.ok("success").setData(new JSONObject().fluentPut("ascriptions", ascriptions));
     }
@@ -40,7 +40,7 @@ public class AscriptionController {
 
     @ApiOperation(value = "商品归属信息", notes = "彻底删除，慎用", httpMethod = "POST")
     @PostMapping("/delete")
-    public SaResult deleteSku(Ascription.deleteDTO dto) {
+    public SaResult deleteAscription(Ascription.deleteDTO dto) {
         System.out.println("deleteAscription TEST");
         System.out.println(new Date().getTime());
 

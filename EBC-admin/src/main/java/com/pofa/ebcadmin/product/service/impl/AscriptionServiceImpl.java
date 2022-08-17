@@ -22,20 +22,7 @@ public class AscriptionServiceImpl implements AscriptionService {
 
 
     @Override
-    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
-    public int addAscriptionInfo() {
-        return ascriptionDao.insert(ascriptionInfo
-                .setProduct(1L)
-                .setOwner(1L)
-                .setDepartment(1L)
-                .setTeam(1L)
-                .setStartTime(new Date())
-                .setNote("c")
-        );
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
     public List<AscriptionInfo> getAscriptionInfosByProductId(Long productId) {
         return ascriptionDao.selectList(new QueryWrapper<AscriptionInfo>().eq("product", productId));
     }
@@ -43,6 +30,8 @@ public class AscriptionServiceImpl implements AscriptionService {
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
     public int deleteAscriptionInfoByUid(Long uid) {
+
+
         return 0;
     }
 }

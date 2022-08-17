@@ -8,6 +8,10 @@ import com.pofa.ebcadmin.category.dto.Category;
 import com.pofa.ebcadmin.category.entity.CategoryHistoryInfo;
 import com.pofa.ebcadmin.category.entity.CategoryInfo;
 import com.pofa.ebcadmin.category.service.CategoryService;
+import com.pofa.ebcadmin.product.dao.ProductDao;
+import com.pofa.ebcadmin.product.entity.ProductInfo;
+import com.pofa.ebcadmin.product.entity.SkuInfo;
+import com.pofa.ebcadmin.product.service.impl.ProductServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -30,6 +34,13 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryHistoryInfo categoryHistoryInfo;
 
 
+    @Autowired
+    public ProductDao productDao;
+
+    @Autowired
+    public ProductInfo productInfo;
+
+
     @Override
     public List<CategoryInfo> getCategorys(Category.GetDTO dto) {
         return categoryDao.selectList(null);
@@ -41,6 +52,17 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryDao.insert(categoryInfo
                 .setName(dto.getName())
                 .setNote(dto.getNote()));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
+    public int deleteCategoryByUid(Long uid) {
+        List category = productDao.selectList(new QueryWrapper<ProductInfo>().select("id").eq("first_category", uid).last("limit 1"));
+        if (category.isEmpty()) {
+            return categoryDao.delete(new QueryWrapper<CategoryInfo>().eq("uid", uid));
+        } else {
+            return -1;
+        }
     }
 
     @Override
@@ -78,6 +100,12 @@ public class CategoryServiceImpl implements CategoryService {
                         .setStartTime(dto.getStartTime())
                         .setNote(dto.getNote()),
                 new UpdateWrapper<CategoryHistoryInfo>().eq("uid", dto.getUid()));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
+    public int deleteCategoryHistoryByUid(Long uid) {
+        return categoryHistoryDao.delete(new QueryWrapper<CategoryHistoryInfo>().eq("uid", uid));
     }
 
 }

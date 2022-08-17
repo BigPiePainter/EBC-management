@@ -18,6 +18,16 @@ public class Category {
     }
 
     @Data
+    public static class DeleteDTO {
+        private Long uid;
+    }
+
+    @Data
+    public static class DeleteHistoryDTO {
+        private Long uid;
+    }
+
+    @Data
     public static class EditDTO {
         private Long uid;
 
