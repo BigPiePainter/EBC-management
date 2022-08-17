@@ -38,8 +38,6 @@ public class AscriptionController {
     }
 
 
-
-
     @ApiOperation(value = "商品归属信息", notes = "彻底删除，慎用", httpMethod = "POST")
     @PostMapping("/delete")
     public SaResult deleteSku(Ascription.deleteDTO dto) {
