@@ -38,7 +38,7 @@ public class AscriptionController {
     }
 
 
-    @ApiOperation(value = "商品归属信息", notes = "彻底删除，慎用", httpMethod = "POST")
+    @ApiOperation(value = "删除商品归属信息", notes = "彻底删除，慎用", httpMethod = "POST")
     @PostMapping("/delete")
     public SaResult deleteAscription(Ascription.deleteDTO dto) {
         System.out.println("deleteAscription TEST");

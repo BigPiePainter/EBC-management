@@ -15,4 +15,6 @@ public interface ProductService {
 
     JSONObject getCategorysByUserIds(List<Long> idList);
 
+    int deprecateProductByUid(Long uid);
+
 }

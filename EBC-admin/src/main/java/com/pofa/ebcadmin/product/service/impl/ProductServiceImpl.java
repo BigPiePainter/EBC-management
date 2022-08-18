@@ -11,6 +11,7 @@ import com.pofa.ebcadmin.product.dao.ProductDao;
 import com.pofa.ebcadmin.product.dto.Product;
 import com.pofa.ebcadmin.product.entity.AscriptionInfo;
 import com.pofa.ebcadmin.product.entity.ProductInfo;
+import com.pofa.ebcadmin.product.entity.SkuInfo;
 import com.pofa.ebcadmin.product.service.AscriptionService;
 import com.pofa.ebcadmin.product.service.ProductService;
 import com.pofa.ebcadmin.utils.Convert;
@@ -197,6 +198,12 @@ public class ProductServiceImpl implements ProductService {
 
         System.out.println(data);
         return data;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
+    public int deprecateProductByUid(Long uid) {
+        return productDao.update(null, new UpdateWrapper<ProductInfo>().in("uid", uid));
     }
 
 }

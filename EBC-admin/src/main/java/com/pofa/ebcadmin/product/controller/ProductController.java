@@ -7,6 +7,7 @@ import cn.dev33.satoken.util.SaResult;
 import com.alibaba.fastjson2.JSONObject;
 import com.pofa.ebcadmin.manufacturer.dto.Manufacturer;
 import com.pofa.ebcadmin.product.dto.Product;
+import com.pofa.ebcadmin.product.dto.Sku;
 import com.pofa.ebcadmin.product.service.ProductService;
 import com.pofa.ebcadmin.userLogin.entity.UserInfo;
 import com.pofa.ebcadmin.userLogin.service.UserService;
@@ -113,4 +114,47 @@ public class ProductController {
 
         return SaResult.ok("success").setData(data);
     }
+
+    @ApiOperation(value = "删除商品", notes = "将商品挪入回收站", httpMethod = "POST")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "uids", value = "要删除的商品的UID，用英文逗号隔开", dataType = "String", paramType = "query", dataTypeClass = String.class, example = "1000,1001", required = false),
+    })
+    @PostMapping("/delete")
+    public SaResult deleteProduct(Product.deleteDTO dto) {
+        System.out.println("deleteProduct TEST");
+
+        var code = productService.deprecateProductByUid(dto.getUid());
+
+        System.out.println(code);
+
+        String data;
+        if (code > 0) {
+            data = "成功删除" + code + "条商品";
+        } else {
+            data = switch (code) {
+                default -> "未知错误";
+            };
+        }
+
+
+        return SaResult.ok("success").setData(data).setCode(code);
+    }
+
+//    @ApiOperation(value = "删除商品", notes = "需要登陆", httpMethod = "POST")
+//    @ApiImplicitParams({
+//    })
+//    @SaCheckLogin
+//    @PostMapping("/deleteProduct")
+//    public SaResult deleteProduct() {
+//        System.out.println("deleteProduct TEST");
+//
+//        //查询所有下级User
+//        System.out.println(StpUtil.getLoginIdAsLong());
+//        var users = userService.getUserIdsWithinAuthorityById(StpUtil.getLoginIdAsLong());
+//        System.out.println(users);
+//
+//        JSONObject data = productService.getCategorysByUserIds(users);
+//
+//        return SaResult.ok("success").setData(data);
+//    }
 }

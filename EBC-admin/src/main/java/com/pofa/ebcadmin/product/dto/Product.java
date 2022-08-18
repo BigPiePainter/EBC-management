@@ -48,5 +48,10 @@ public class Product {
 
         private String note;
     }
+
+    @Data
+    public static class deleteDTO {
+        private Long uid;
+    }
 }
 
