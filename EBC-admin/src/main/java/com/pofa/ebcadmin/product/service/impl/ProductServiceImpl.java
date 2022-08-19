@@ -202,8 +202,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
-    public int deprecateProductByUid(Long uid) {
-        return productDao.update(null, new UpdateWrapper<ProductInfo>().in("uid", uid));
+    public int deprecateProductById(Long uid) {
+        return productDao.update(null, new UpdateWrapper<ProductInfo>().in("id", uid).set("deprecated", true));
     }
 
 }

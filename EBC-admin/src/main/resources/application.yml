@@ -3,7 +3,7 @@ server:
     uri-encoding: UTF-8
     max-threads: 1000
     min-spare-threads: 30
-  port: 8088
+  port: 8087
   servlet:
     context-path: /pofa
     session:
