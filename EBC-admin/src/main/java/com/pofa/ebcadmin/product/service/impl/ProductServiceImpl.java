@@ -143,7 +143,7 @@ public class ProductServiceImpl implements ProductService {
             wrapper.in(Convert.camelToUnderScore(entry.getKey()), items);
         }
 
-        //模糊查找，可优化
+        //模糊查找
         for (Map.Entry<String, Object> entry : search.entrySet()) {
             var value = (String) (entry.getValue());
             if (value.isEmpty()) continue;
