@@ -5,13 +5,11 @@ import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.util.SaResult;
 import com.alibaba.fastjson2.JSONObject;
-import com.pofa.ebcadmin.manufacturer.dto.Manufacturer;
 import com.pofa.ebcadmin.product.dto.Product;
 import com.pofa.ebcadmin.product.service.ProductService;
 import com.pofa.ebcadmin.userLogin.entity.UserInfo;
 import com.pofa.ebcadmin.userLogin.service.UserService;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +17,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.math.BigDecimal;
 
 @Api(tags = "商品信息")
 @Controller
@@ -114,4 +110,44 @@ public class ProductController {
 
         return SaResult.ok("success").setData(data);
     }
+
+    @ApiOperation(value = "删除商品", notes = "将商品挪入回收站", httpMethod = "POST")
+    @PostMapping("/delete")
+    public SaResult deleteProduct(Product.deleteDTO dto) {
+        System.out.println("deleteProduct TEST");
+
+        var code = productService.deprecateProductById(dto.getUid());
+
+        System.out.println(code);
+
+        String data;
+        if (code > 0) {
+            data = "成功删除" + code + "条商品";
+        } else {
+            data = switch (code) {
+                default -> "未知错误";
+            };
+        }
+
+
+        return SaResult.ok("success").setData(data).setCode(code);
+    }
+
+//    @ApiOperation(value = "删除商品", notes = "需要登陆", httpMethod = "POST")
+//    @ApiImplicitParams({
+//    })
+//    @SaCheckLogin
+//    @PostMapping("/deleteProduct")
+//    public SaResult deleteProduct() {
+//        System.out.println("deleteProduct TEST");
+//
+//        //查询所有下级User
+//        System.out.println(StpUtil.getLoginIdAsLong());
+//        var users = userService.getUserIdsWithinAuthorityById(StpUtil.getLoginIdAsLong());
+//        System.out.println(users);
+//
+//        JSONObject data = productService.getCategorysByUserIds(users);
+//
+//        return SaResult.ok("success").setData(data);
+//    }
 }

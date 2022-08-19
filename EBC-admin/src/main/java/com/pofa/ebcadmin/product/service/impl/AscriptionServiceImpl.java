@@ -30,8 +30,6 @@ public class AscriptionServiceImpl implements AscriptionService {
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
     public int deleteAscriptionInfoByUid(Long uid) {
-
-
-        return 0;
+        return ascriptionDao.delete(new QueryWrapper<AscriptionInfo>().eq("uid", uid));
     }
 }
