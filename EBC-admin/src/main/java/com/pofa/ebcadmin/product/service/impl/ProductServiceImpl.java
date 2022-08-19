@@ -133,7 +133,7 @@ public class ProductServiceImpl implements ProductService {
         System.out.println("------------------");
 
         //sql待优化，暂时不需要
-        var wrapper = new QueryWrapper<ProductInfo>().in("owner", users);
+        var wrapper = new QueryWrapper<ProductInfo>().in("owner", users).eq("deprecated", false);
 
         //类别删选
         for (Map.Entry<String, Object> entry : select.entrySet()) {
@@ -202,8 +202,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
-    public int deprecateProductById(Long uid) {
-        return productDao.update(null, new UpdateWrapper<ProductInfo>().in("id", uid).set("deprecated", true));
+    public int deprecateProductById(Long id) {
+        return productDao.update(null, new UpdateWrapper<ProductInfo>().in("id", id).set("deprecated", true));
     }
 
 }

@@ -115,19 +115,14 @@ public class ProductController {
     public SaResult deleteProduct(Product.deleteDTO dto) {
         System.out.println("deleteProduct TEST");
 
-        var code = productService.deprecateProductById(dto.getUid());
+        var code = productService.deprecateProductById(dto.getId());
 
         System.out.println(code);
 
-        String data;
-        if (code > 0) {
-            data = "成功删除" + code + "条商品";
-        } else {
-            data = switch (code) {
-                default -> "未知错误";
-            };
-        }
-
+        String data = switch (code) {
+            case 1 -> "删除成功";
+            default -> "未知错误";
+        };
 
         return SaResult.ok("success").setData(data).setCode(code);
     }
