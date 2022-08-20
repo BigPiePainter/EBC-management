@@ -132,7 +132,7 @@ public class OrderServiceImpl implements OrderService {
         for (var i = 1; i < totalRow; i++) {
             row = sheet.getRow(i);
 
-            System.out.println(i);
+//            System.out.println(i);
 
             cellA = row.getCell(2);
             cellB = row.getCell(7);
@@ -261,11 +261,11 @@ public class OrderServiceImpl implements OrderService {
             cellD = row.getCell(10);
             cellE = row.getCell(11);
 
-            System.out.println(cellA.getStringCellValue());
-            System.out.println(cellB.getDateCellValue());
-            System.out.println(cellC.getNumericCellValue());
-            System.out.println(cellD.getNumericCellValue());
-            System.out.println(cellE.getStringCellValue());
+//            System.out.println(cellA.getStringCellValue());
+//            System.out.println(cellB.getDateCellValue());
+//            System.out.println(cellC.getNumericCellValue());
+//            System.out.println(cellD.getNumericCellValue());
+//            System.out.println(cellE.getStringCellValue());
 
 
             list.add(new FakeOrderInfo()
