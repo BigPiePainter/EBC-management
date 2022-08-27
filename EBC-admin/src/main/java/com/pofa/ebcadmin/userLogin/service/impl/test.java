@@ -2,6 +2,7 @@ package com.pofa.ebcadmin.userLogin.service.impl;
 
 import com.pofa.ebcadmin.product.dao.SkuDao;
 import com.pofa.ebcadmin.product.entity.SkuInfo;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+@Slf4j
 @Service
 public class test{
 
@@ -32,11 +34,11 @@ public class test{
             sheet = workbook.getSheetAt(0);
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Excel 文件打开失败");
+            log.info("Excel 文件打开失败");
             System.exit(0);
         }
 
-        System.out.println("打开成功");
+        log.info("打开成功");
 
         for (int j = 1; j <= sheet.getLastRowNum(); j++) {
             Row row = sheet.getRow(j);
@@ -57,21 +59,21 @@ public class test{
                         }
                         break;
                     default:
-                        System.out.println("没见过的CellType");
-                        System.out.println("数据类型:" + cell.getCellType());
+                        log.info("没见过的CellType");
+                        log.info("数据类型:" + cell.getCellType());
                 }
 
             }
             if (!flag) break;
-            System.out.println(row.getRowNum());
+            log.info(String.valueOf(row.getRowNum()));
 
            /* if (row.getCell(4).getCellType() == CellType.NUMERIC) {
                 Date st = row.getCell(4).getDateCellValue();
-                System.out.println("日期数据类型:" + row.getCell(4).getCellType());
-                System.out.println("日期:" + st);
+                log.info("日期数据类型:" + row.getCell(4).getCellType());
+                log.info("日期:" + st);
             } else {
-                System.out.println("日期数据类型:" + row.getCell(4).getCellType());
-                System.out.println("日期错误");
+                log.info("日期数据类型:" + row.getCell(4).getCellType());
+                log.info("日期错误");
             }*/
 
             /*skuDao.insert(skuInfo
@@ -83,19 +85,19 @@ public class test{
                     .setStart_time(Double.valueOf(row.getCell(5).getStringCellValue()))
                     .setProduct_id(row.getCell(0).getStringCellValue()));
             */
-            System.out.println("SKU ID：" + row.getCell(1).getStringCellValue());
-            System.out.println("SKU名称：" + row.getCell(2).getStringCellValue());
-            System.out.println("单个成本：" + row.getCell(4).getNumericCellValue());
-            System.out.println("售卖价：" + row.getCell(3).getNumericCellValue());
-            System.out.println("价格截止时间：" + row.getCell(6).getDateCellValue());
-            System.out.println("价格开始时间：" + row.getCell(5).getDateCellValue());
-            System.out.println("商品ID：" + row.getCell(0).getStringCellValue());
+            log.info("SKU ID：" + row.getCell(1).getStringCellValue());
+            log.info("SKU名称：" + row.getCell(2).getStringCellValue());
+            log.info("单个成本：" + row.getCell(4).getNumericCellValue());
+            log.info("售卖价：" + row.getCell(3).getNumericCellValue());
+            log.info("价格截止时间：" + row.getCell(6).getDateCellValue());
+            log.info("价格开始时间：" + row.getCell(5).getDateCellValue());
+            log.info("商品ID：" + row.getCell(0).getStringCellValue());
         }
 
             /*for (Cell cell : row){
 
                 try{
-                    System.out.println(cell.getStringCellValue());
+                    log.info(cell.getStringCellValue());
                 } catch (Exception ignore){
 
                 }

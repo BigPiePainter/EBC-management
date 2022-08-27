@@ -4,6 +4,7 @@ package com.pofa.ebcadmin.order.entity;
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import io.swagger.models.auth.In;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.stereotype.Repository;
@@ -14,39 +15,35 @@ import java.util.Date;
 @Data
 @Accessors(chain = true)
 @Repository
-@TableName("manufacturers")
+@TableName("orders")
 public class OrderInfo {
-    private Long uid;
+    private Long id;
+    private Long orderId;
+    private String paymentId;
+    private BigDecimal amount;
+    private BigDecimal postage;
+    private BigDecimal totalAmount;
+    private BigDecimal actualTotalAmount;
+    private BigDecimal actualAmount;
+    private Integer orderStatus;
+    private Date orderSetupTime;
+    private Date orderPaymentTime;
+    private String productTitle;
+    private Long productCount;
+    private String expressNumber;
+    private String expressCompany;
+    private Long shopId;
+    private String shopName;
+    private Long supplierId;
+    private String supplierName;
+    private Integer storehouseType;
+    private BigDecimal refundAmount;
+    private String skuName;
+    private String sellerCode;
     private Long productId;
 
-    private String manufacturerName;
-    private String manufacturerGroup;
 
-    private String manufacturerPaymentMethod;
-    private String manufacturerPaymentName;
-    private String manufacturerPaymentId;
-
-    private String manufacturerRecipient;
-    private String manufacturerPhone;
-    private String manufacturerAddress;
-
-    private BigDecimal freight;
-    private BigDecimal extraRatio;
-    private BigDecimal freightToPayment;
-
-    private Date startTime;
-
-    @TableField(fill = FieldFill.INSERT)
-    private String note;
-
-    @TableField(fill = FieldFill.INSERT)
-    private Date createTime;
-
-    @TableField(fill = FieldFill.INSERT_UPDATE)
-    private Date modifyTime;
-
-    @TableField(fill = FieldFill.INSERT)
-    private Boolean deprecated;
-
+    @TableField(exist = false)
+    private BigDecimal productTotalAmount;
 
 }

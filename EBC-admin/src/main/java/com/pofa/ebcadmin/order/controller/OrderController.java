@@ -10,6 +10,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,10 +18,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.text.SimpleDateFormat;
+
 @Api(tags = "订单")
 @Controller
 @RestController
 @RequestMapping("order")
+@Slf4j
 public class OrderController {
     @Autowired
     public OrderService orderService;
@@ -30,9 +34,9 @@ public class OrderController {
             httpMethod = "POST")
     @PostMapping("/fileUpload")
     public SaResult fileUpload(MultipartFile file) {
-        System.out.println(file);
+        log.info(String.valueOf(file));
         orderService.fileProcess(file);
-        System.out.println("返回上传结果");
+        log.info("返回上传结果");
         return SaResult.ok("success");
     }
 
@@ -44,5 +48,14 @@ public class OrderController {
         return SaResult.ok("success").setData(new JSONObject().fluentPut("fileStates", FileStateManager.getStates()));
     }
 
+    @ApiOperation(value = "获取利润报表", notes = "根据日期",
+            httpMethod = "POST")
+    @PostMapping("/getDailyReport")
+    public SaResult getDailyReport(Order.GetDailyReportDTO dto) {
+        System.out.println("Get DailyReport TEST");
+        var dailyReport = orderService.getDailyReport(dto.getDate());
+        var dayFormat = new SimpleDateFormat("yyyy-MM-dd");
+        return SaResult.ok("success").setData(new JSONObject().fluentPut(dayFormat.format(dto.getDate()), dailyReport));
+    }
 
 }

@@ -3,30 +3,51 @@ package com.pofa.ebcadmin.product.service.impl;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.pofa.ebcadmin.mybatisplus.CustomTableNameHandler;
+import com.pofa.ebcadmin.order.dao.OrderDao;
+import com.pofa.ebcadmin.order.entity.FakeOrderInfo;
+import com.pofa.ebcadmin.order.entity.OrderInfo;
+import com.pofa.ebcadmin.order.entity.RefundOrderInfo;
 import com.pofa.ebcadmin.product.dao.AscriptionDao;
+import com.pofa.ebcadmin.product.dao.MismatchProductDao;
 import com.pofa.ebcadmin.product.dao.ProductDao;
 import com.pofa.ebcadmin.product.dto.Product;
 import com.pofa.ebcadmin.product.entity.AscriptionInfo;
+import com.pofa.ebcadmin.product.entity.MismatchProductInfo;
 import com.pofa.ebcadmin.product.entity.ProductInfo;
 import com.pofa.ebcadmin.product.entity.SkuInfo;
 import com.pofa.ebcadmin.product.service.AscriptionService;
 import com.pofa.ebcadmin.product.service.ProductService;
 import com.pofa.ebcadmin.utils.Convert;
+import lombok.Data;
+import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class ProductServiceImpl implements ProductService {
+
+    private static final SimpleDateFormat dayFormat = new SimpleDateFormat("yyyyMMdd");
+
+    @Autowired
+    public OrderDao orderDao;
+
+    @Autowired
+    public OrderInfo orderInfo;
 
     @Autowired
     public ProductDao productDao;
@@ -39,6 +60,10 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     public AscriptionInfo ascriptionInfo;
+
+
+    @Autowired
+    public MismatchProductDao mismatchProductDao;
 
 
     @Override
@@ -70,6 +95,8 @@ public class ProductServiceImpl implements ProductService {
                     .setOwner(dto.getOwner())
                     .setStartTime(date)
                     .setNote("初始归属"));
+
+            _tryMatchMisMatchProduct(dto.getId());
             return 1;
         }
         return -100;
@@ -79,6 +106,19 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
     public int editProduct(Product.EditDTO dto) {
         if (dto.getStartTime() != null) {
+            var list = ascriptionDao.selectList(
+                    new QueryWrapper<AscriptionInfo>()
+                            .select("department", "team", "owner", "start_time")
+                            .eq("product", dto.getId())
+                            .orderByDesc("start_time")
+                            .last("limit 1")
+            );
+
+            if (list.size() == 1){
+                if (list.get(0).getStartTime().getTime() == dto.getStartTime().getTime()){
+                    return -1;
+                }
+            }
 
             ascriptionDao.insert(ascriptionInfo
                     .setProduct(dto.getId())
@@ -88,12 +128,11 @@ public class ProductServiceImpl implements ProductService {
                     .setStartTime(dto.getStartTime())
                     .setNote(""));
 
-            var list = ascriptionDao.selectList(
+            list = ascriptionDao.selectList(
                     new QueryWrapper<AscriptionInfo>()
                             .select("department", "team", "owner")
                             .eq("product", dto.getId())
                             .orderByDesc("start_time")
-                            .orderByDesc("create_time")
                             .last("limit 1")
             );
 
@@ -128,9 +167,9 @@ public class ProductServiceImpl implements ProductService {
         var match = JSON.parseObject(dto.getMatch(), JSONObject.class);
         var select = match.getJSONObject("select");
         var search = match.getJSONObject("search");
-        System.out.println(select);
-        System.out.println(search);
-        System.out.println("------------------");
+        log.info(String.valueOf(select));
+        log.info(String.valueOf(search));
+        log.info("------------------");
 
         //sql待优化，暂时不需要
         var wrapper = new QueryWrapper<ProductInfo>().in("owner", users);
@@ -196,7 +235,7 @@ public class ProductServiceImpl implements ProductService {
             data.put(Convert.underScoreToCamel(col), array);
         }
 
-        System.out.println(data);
+        log.info(String.valueOf(data));
         return data;
     }
 
@@ -204,6 +243,36 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
     public int deprecateProductById(Long uid) {
         return productDao.update(null, new UpdateWrapper<ProductInfo>().in("id", uid).set("deprecated", true));
+    }
+
+    public void _tryMatchMisMatchProduct(Long productId) {
+        mismatchProductDao.delete(new QueryWrapper<MismatchProductInfo>().eq("id", productId));
+    }
+
+    public List<MismatchProductInfo> getMismatchProducts() {
+        var mismatchProducts = mismatchProductDao.selectList(null);
+        if (mismatchProducts.isEmpty()){
+            return mismatchProducts;
+        }
+
+        mismatchProducts.forEach(mismatchProduct -> mismatchProduct.setTotalAmount(BigDecimal.valueOf(0)));
+
+        var mismatchProductMap = mismatchProducts.stream().collect(Collectors.toMap(MismatchProductInfo::getId, info -> info));
+        var mismatchProductIds = mismatchProducts.stream().map(MismatchProductInfo::getId).toList();
+
+        var calendar = new GregorianCalendar();
+        calendar.setTime(new Date());
+        for (int j = 0; j < 30; j++) { //从全部订单里追溯30天
+            System.out.println("追溯-" + dayFormat.format(calendar.getTime()));
+            CustomTableNameHandler.customTableName.set("z_orders_" + dayFormat.format(calendar.getTime()));
+            var result = orderDao.selectList(new QueryWrapper<OrderInfo>().select("product_id", "sum(actual_amount) as product_total_amount").in("product_id", mismatchProductIds).groupBy("product_id"));
+            result.forEach(orderInfo -> {
+                var product = mismatchProductMap.get(orderInfo.getProductId());
+                product.setTotalAmount(product.getTotalAmount().add(orderInfo.getProductTotalAmount()));
+            });
+            calendar.add(Calendar.DATE, -1);
+        }
+        return mismatchProductMap.values().stream().toList();
     }
 
 }

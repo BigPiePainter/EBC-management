@@ -2,6 +2,7 @@ package com.pofa.ebcadmin.product.service;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.pofa.ebcadmin.product.dto.Product;
+import com.pofa.ebcadmin.product.entity.MismatchProductInfo;
 
 import java.util.List;
 
@@ -15,5 +16,7 @@ public interface ProductService {
     JSONObject getCategorysByUserIds(List<Long> idList);
 
     int deprecateProductById(Long uid);
+
+    List<MismatchProductInfo> getMismatchProducts();
 
 }

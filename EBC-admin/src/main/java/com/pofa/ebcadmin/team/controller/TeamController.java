@@ -10,6 +10,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Controller
 @RestController
 @RequestMapping("team")
+@Slf4j
 public class TeamController {
     @Autowired
     public TeamService teamService;
@@ -29,8 +31,8 @@ public class TeamController {
             httpMethod = "POST")
     @PostMapping("/add")
     public SaResult addTeam(Team.AddDTO dto) {
-        System.out.println("addTeam TEST");
-        System.out.println(dto);
+        log.info("addTeam TEST");
+        log.info(String.valueOf(dto));
         var code = teamService.addTeam(dto);
 
         String data = switch (code) {

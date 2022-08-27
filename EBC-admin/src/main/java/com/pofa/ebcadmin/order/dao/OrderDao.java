@@ -4,15 +4,11 @@ import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.Constants;
 import com.pofa.ebcadmin.order.entity.OrderInfo;
-import com.pofa.ebcadmin.product.entity.ProductInfo;
-import com.pofa.ebcadmin.product.entity.SkuInfo;
-import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 @Mapper
 public interface OrderDao extends BaseMapper<OrderInfo> {

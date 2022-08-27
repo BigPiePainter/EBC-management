@@ -1,5 +1,4 @@
-package com.pofa.ebcadmin.order.entity;
-
+package com.pofa.ebcadmin.product.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -11,16 +10,15 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.util.Date;
 
+
 @Data
 @Accessors(chain = true)
 @Repository
-@TableName("fakeorders")
-public class FakeOrderInfo {
+@TableName("mismatchproducts")
+public class MismatchProductInfo {
     private Long id;
+    private String productTitle;
 
-    private Date requestTime;
-    private Date orderPaymentTime;
-    private Long productCount;
-    private BigDecimal brokerage;
-    private String team;
+    @TableField(exist = false)
+    private BigDecimal totalAmount;
 }

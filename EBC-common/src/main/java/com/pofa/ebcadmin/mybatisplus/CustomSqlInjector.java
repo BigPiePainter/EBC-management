@@ -42,19 +42,19 @@ public class CustomSqlInjector extends DefaultSqlInjector {
 
         @Override
         public MappedStatement injectMappedStatement(Class<?> mapperClass, Class<?> modelClass, TableInfo tableInfo) {
-            List<TableFieldInfo> fieldList = tableInfo.getFieldList();
-            String columnScript = tableInfo.getKeyInsertSqlColumn(false, false) + fieldList.stream().map(TableFieldInfo::getInsertSqlColumn).collect(Collectors.joining(EMPTY));
+            var fieldList = tableInfo.getFieldList();
+            var columnScript = tableInfo.getKeyInsertSqlColumn(false, false) + fieldList.stream().map(TableFieldInfo::getInsertSqlColumn).collect(Collectors.joining(EMPTY));
             columnScript = LEFT_BRACKET + columnScript.substring(0, columnScript.length() - 1) + RIGHT_BRACKET;
-            String replaceIntoValue = tableInfo.getKeyInsertSqlProperty(true, ENTITY_DOT, false) + fieldList.stream().map(i -> i.getInsertSqlProperty(ENTITY_DOT)).collect(Collectors.joining(EMPTY));
+            var replaceIntoValue = tableInfo.getKeyInsertSqlProperty(true, ENTITY_DOT, false) + fieldList.stream().map(i -> i.getInsertSqlProperty(ENTITY_DOT)).collect(Collectors.joining(EMPTY));
             replaceIntoValue = LEFT_BRACKET + replaceIntoValue.substring(0, replaceIntoValue.length() - 1) + RIGHT_BRACKET;
-            String valuesScript = SqlScriptUtils.convertForeach(replaceIntoValue, "list", null, ENTITY, COMMA);
+            var valuesScript = SqlScriptUtils.convertForeach(replaceIntoValue, "list", null, ENTITY, COMMA);
 
-            String sql = String.format("<script>\nREPLACE INTO %s %s VALUES %s\n</script>", tableInfo.getTableName(), columnScript, valuesScript);
-            SqlSource sqlSource = languageDriver.createSqlSource(configuration, sql, modelClass);
+            var sql = String.format("<script>\nREPLACE INTO %s %s VALUES %s\n</script>", tableInfo.getTableName(), columnScript, valuesScript);
+            var sqlSource = languageDriver.createSqlSource(configuration, sql, modelClass);
             // 表包含主键处理逻辑，如果不包含主键当普通字段处理
-            KeyGenerator keyGenerator = NoKeyGenerator.INSTANCE;
-            String keyProperty = tableInfo.getKeyProperty();
-            String keyColumn = tableInfo.getKeyColumn();
+            var keyGenerator = (KeyGenerator) NoKeyGenerator.INSTANCE;
+            var keyProperty = tableInfo.getKeyProperty();
+            var keyColumn = tableInfo.getKeyColumn();
             if (StringUtils.isNotBlank(tableInfo.getKeyProperty())) {
                 if (tableInfo.getIdType() == IdType.AUTO) {
                     keyGenerator = Jdbc3KeyGenerator.INSTANCE;

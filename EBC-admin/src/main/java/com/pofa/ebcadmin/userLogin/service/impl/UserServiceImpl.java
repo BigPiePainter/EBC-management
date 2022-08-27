@@ -9,6 +9,7 @@ import com.pofa.ebcadmin.userLogin.dao.UserDao;
 import com.pofa.ebcadmin.userLogin.dto.SysUser;
 import com.pofa.ebcadmin.userLogin.entity.UserInfo;
 import com.pofa.ebcadmin.userLogin.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import java.util.Date;
 import java.util.List;
 
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     @Autowired
@@ -43,7 +45,7 @@ public class UserServiceImpl implements UserService {
         QueryWrapper<UserInfo> wrapper = new QueryWrapper<>();
         wrapper.eq("username", dto.getUsername());
         List<UserInfo> userInfos = userDao.selectList(wrapper);
-        System.out.println(dto);
+        log.info(String.valueOf(dto));
         if (userInfos.isEmpty()) {
             return userDao.insert(userInfo
                     .setCreatorId(dto.getCreatorId())

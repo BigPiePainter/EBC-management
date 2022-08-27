@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.pofa.ebcadmin.product.dao.SkuDao;
 import com.pofa.ebcadmin.product.entity.SkuInfo;
 import com.pofa.ebcadmin.product.service.SkuService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -16,6 +17,7 @@ import java.util.Date;
 import java.util.List;
 
 @Service
+@Slf4j
 public class SkuServiceImpl implements SkuService {
 
     @Autowired
@@ -26,7 +28,7 @@ public class SkuServiceImpl implements SkuService {
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
     public int addSkus(JSONArray skus) {
-        System.out.println(new Date().getTime());
+        log.info(String.valueOf(new Date().getTime()));
 
         var list = new ArrayList<SkuInfo>();
         var count = 0;

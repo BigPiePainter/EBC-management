@@ -10,6 +10,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,6 +23,7 @@ import java.util.Date;
 @Controller
 @RestController
 @RequestMapping("ascription")
+@Slf4j
 public class AscriptionController {
 
 
@@ -32,7 +34,7 @@ public class AscriptionController {
     @ApiOperation(value = "读取商品归属信息", notes = "根据商品ID", httpMethod = "POST")
     @PostMapping("/get")
     public SaResult getAscriptions(Ascription.getDTO dto) {
-        System.out.println("getAscriptions TEST");
+        log.info("getAscriptions TEST");
         var ascriptions = ascriptionService.getAscriptionInfosByProductId(dto.getProductId());
         return SaResult.ok("success").setData(new JSONObject().fluentPut("ascriptions", ascriptions));
     }
@@ -41,11 +43,11 @@ public class AscriptionController {
     @ApiOperation(value = "删除商品归属信息", notes = "彻底删除，慎用", httpMethod = "POST")
     @PostMapping("/delete")
     public SaResult deleteAscription(Ascription.deleteDTO dto) {
-        System.out.println("deleteAscription TEST");
-        System.out.println(new Date().getTime());
+        log.info("deleteAscription TEST");
+        log.info(String.valueOf(new Date().getTime()));
 
         var code = ascriptionService.deleteAscriptionInfoByUid(dto.getUid());
-        System.out.println(new Date().getTime());
+        log.info(String.valueOf(new Date().getTime()));
 
 
         String data = switch (code) {

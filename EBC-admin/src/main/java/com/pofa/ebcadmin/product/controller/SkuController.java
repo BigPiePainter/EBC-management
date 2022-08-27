@@ -11,6 +11,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,6 +25,7 @@ import java.util.Date;
 @Controller
 @RestController
 @RequestMapping("sku")
+@Slf4j
 public class SkuController {
 
 
@@ -41,11 +43,11 @@ public class SkuController {
     })
     @PostMapping("/add")
     public SaResult addSkus(@RequestBody JSONObject json) {
-        System.out.println(json);
+        log.info(String.valueOf(json));
 
-        System.out.println("addSkus TEST");
+        log.info("addSkus TEST");
         var code = skuService.addSkus(json.getJSONArray("data"));
-        System.out.println(code);
+        log.info(String.valueOf(code));
 
         var data = "";
 
@@ -66,10 +68,10 @@ public class SkuController {
     })
     @PostMapping("/get")
     public SaResult getSkus(Sku.getDTO dto) {
-        System.out.println("getSkus TEST");
-        System.out.println(new Date().getTime());
+        log.info("getSkus TEST");
+        log.info(String.valueOf(new Date().getTime()));
         var skus = skuService.getSkusByProductId(dto.getProductId());
-        System.out.println(new Date().getTime());
+        log.info(String.valueOf(new Date().getTime()));
         return SaResult.ok("success").setData(new JSONObject().fluentPut("skus", skus));
     }
 
@@ -79,11 +81,11 @@ public class SkuController {
     })
     @PostMapping("/delete")
     public SaResult deleteSku(Sku.deleteDTO dto) {
-        System.out.println("deleteSku TEST");
+        log.info("deleteSku TEST");
 
         var code = skuService.deprecateSkuByUids(dto.getUids());
 
-        System.out.println(code);
+        log.info(String.valueOf(code));
 
         String data;
         if (code > 0) {

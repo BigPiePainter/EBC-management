@@ -1,9 +1,7 @@
 package com.pofa.ebcadmin.product.entity;
 
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.stereotype.Repository;
@@ -16,7 +14,6 @@ import java.util.Date;
 @Repository
 @TableName("ascriptions")
 public class AscriptionInfo {
-
     private Long uid;
     private Long product;
 

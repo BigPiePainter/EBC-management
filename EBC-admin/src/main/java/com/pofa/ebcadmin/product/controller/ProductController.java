@@ -12,6 +12,7 @@ import com.pofa.ebcadmin.userLogin.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Controller
 @RestController
 @RequestMapping("product")
+@Slf4j
 public class ProductController {
 
     @Autowired
@@ -32,7 +34,7 @@ public class ProductController {
     @ApiOperation(value = "新增商品", notes = "新增产品信息", httpMethod = "POST")
     @PostMapping("/add")
     public SaResult productAdd(Product.AddDTO dto) {
-        System.out.println("ADD TEST");
+        log.info("ADD TEST");
         int code = productService.addProduct(dto);
 
         String data = switch (code) {
@@ -52,12 +54,13 @@ public class ProductController {
     @PostMapping("/modify")
     public SaResult editProduct(Product.EditDTO dto) {
 
-        System.out.println("Product EDIT TEST");
-        System.out.println(dto);
+        log.info("Product EDIT TEST");
+        log.info(String.valueOf(dto));
         var code = productService.editProduct(dto);
 
         String data = switch (code) {
             case 1 -> "修改成功";
+            case -1 -> "变化日期有冲突，需要先删除旧的";
             default -> "未知错误";
         };
 
@@ -72,18 +75,18 @@ public class ProductController {
     @SaCheckLogin
     @PostMapping("/getByPermission")
     public SaResult productGet(Product.GetDTO dto) {
-        System.out.println("GET TEST");
+        log.info("GET TEST");
         if (!StpUtil.isLogin()){
             return SaResult.ok("success").setData("用户未登录");
         }
         UserInfo user = (UserInfo) StpUtil.getSession().get("user");
-        System.out.println(user);
-        System.out.println(dto);
+        log.info(String.valueOf(user));
+        log.info(String.valueOf(dto));
 
         //查询所有下级User
-        System.out.println(StpUtil.getLoginIdAsLong());
+        log.info(String.valueOf(StpUtil.getLoginIdAsLong()));
         var users = userService.getUserIdsWithinAuthorityById(StpUtil.getLoginIdAsLong());
-        System.out.println(users);
+        log.info(String.valueOf(users));
 
         JSONObject data = productService.getProductsByUserIds(users, dto);
 
@@ -99,12 +102,12 @@ public class ProductController {
     @SaCheckLogin
     @PostMapping("/getCategory")
     public SaResult getCategory() {
-        System.out.println("getCategory TEST");
+        log.info("getCategory TEST");
 
         //查询所有下级User
-        System.out.println(StpUtil.getLoginIdAsLong());
+        log.info(String.valueOf(StpUtil.getLoginIdAsLong()));
         var users = userService.getUserIdsWithinAuthorityById(StpUtil.getLoginIdAsLong());
-        System.out.println(users);
+        log.info(String.valueOf(users));
 
         JSONObject data = productService.getCategorysByUserIds(users);
 
@@ -114,11 +117,11 @@ public class ProductController {
     @ApiOperation(value = "删除商品", notes = "将商品挪入回收站", httpMethod = "POST")
     @PostMapping("/delete")
     public SaResult deleteProduct(Product.deleteDTO dto) {
-        System.out.println("deleteProduct TEST");
+        log.info("deleteProduct TEST");
 
         var code = productService.deprecateProductById(dto.getUid());
 
-        System.out.println(code);
+        log.info(String.valueOf(code));
 
         String data;
         if (code > 0) {
@@ -133,18 +136,26 @@ public class ProductController {
         return SaResult.ok("success").setData(data).setCode(code);
     }
 
+    @ApiOperation(value = "获取未匹配商品信息", notes = "认领大厅", httpMethod = "POST")
+    @PostMapping("/getMismatchProducts")
+    public SaResult getMismatchProducts() {
+        log.info("getMismatchProducts TEST");
+        var mismatchProducts =  productService.getMismatchProducts();
+        return SaResult.ok("success").setData(new JSONObject().fluentPut("mismatchProducts", mismatchProducts));
+    }
+
 //    @ApiOperation(value = "删除商品", notes = "需要登陆", httpMethod = "POST")
 //    @ApiImplicitParams({
 //    })
 //    @SaCheckLogin
 //    @PostMapping("/deleteProduct")
 //    public SaResult deleteProduct() {
-//        System.out.println("deleteProduct TEST");
+//        log.info("deleteProduct TEST");
 //
 //        //查询所有下级User
-//        System.out.println(StpUtil.getLoginIdAsLong());
+//        log.info(StpUtil.getLoginIdAsLong());
 //        var users = userService.getUserIdsWithinAuthorityById(StpUtil.getLoginIdAsLong());
-//        System.out.println(users);
+//        log.info(users);
 //
 //        JSONObject data = productService.getCategorysByUserIds(users);
 //

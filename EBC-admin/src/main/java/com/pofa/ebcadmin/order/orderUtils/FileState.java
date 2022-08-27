@@ -13,4 +13,7 @@ public class FileState {
     private int code;
 
     private Long size;
+
+
+    private int realRowNum;
 }

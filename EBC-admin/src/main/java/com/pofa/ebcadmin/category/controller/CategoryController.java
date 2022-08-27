@@ -9,6 +9,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Controller
 @RestController
 @RequestMapping("category")
+@Slf4j
 public class CategoryController {
     @Autowired
     public CategoryService categoryService;
@@ -28,8 +30,8 @@ public class CategoryController {
             httpMethod = "POST")
     @PostMapping("/add")
     public SaResult addCategory(Category.AddDTO dto) {
-        System.out.println("addCategory Test");
-        System.out.println(dto);
+        log.info("addCategory Test");
+        log.info(String.valueOf(dto));
         var code = categoryService.addCategory(dto);
 
         String data = switch (code) {
@@ -44,8 +46,8 @@ public class CategoryController {
             httpMethod = "POST")
     @PostMapping("/delete")
     public SaResult deleteCategory(Category.DeleteDTO dto) {
-        System.out.println("deleteCategory Test");
-        System.out.println(dto);
+        log.info("deleteCategory Test");
+        log.info(String.valueOf(dto));
         var code = categoryService.deleteCategoryByUid(dto.getUid());
 
         String data = switch (code) {
@@ -61,8 +63,8 @@ public class CategoryController {
             httpMethod = "POST")
     @PostMapping("/deleteHistory")
     public SaResult deleteCategoryHistory(Category.DeleteHistoryDTO dto) {
-        System.out.println("deleteCategoryHistory Test");
-        System.out.println(dto);
+        log.info("deleteCategoryHistory Test");
+        log.info(String.valueOf(dto));
         var code = categoryService.deleteCategoryHistoryByUid(dto.getUid());
 
         String data = switch (code) {
@@ -92,7 +94,7 @@ public class CategoryController {
             httpMethod = "POST")
     @PostMapping("/get")
     public SaResult getCategorys(Category.GetDTO dto) {
-        System.out.println("getCategorys TEST");
+        log.info("getCategorys TEST");
         var categorys = categoryService.getCategorys(dto);
         return SaResult.ok("success").setData(new JSONObject().fluentPut("categorys", categorys));
     }
@@ -102,8 +104,8 @@ public class CategoryController {
             httpMethod = "POST")
     @PostMapping("/addHistory")
     public SaResult addCategoryHistory(Category.AddHistoryDTO dto) {
-        System.out.println("addCategoryHistory Test");
-        System.out.println(dto);
+        log.info("addCategoryHistory Test");
+        log.info(String.valueOf(dto));
         var code = categoryService.addCategoryHistory(dto);
 
         String data = switch (code) {
@@ -132,7 +134,7 @@ public class CategoryController {
             httpMethod = "POST")
     @PostMapping("/getHistorys")
     public SaResult getCategoryHistorys(Category.GetHistoryDTO dto) {
-        System.out.println("getCategoryHistorys TEST");
+        log.info("getCategoryHistorys TEST");
         var categorys = categoryService.getCategoryHistorys(dto);
         return SaResult.ok("success").setData(new JSONObject().fluentPut("categoryHistorys", categorys));
     }

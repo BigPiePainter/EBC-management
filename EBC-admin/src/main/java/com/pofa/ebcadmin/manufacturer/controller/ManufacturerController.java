@@ -13,6 +13,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,6 +27,7 @@ import java.util.List;
 @Controller
 @RestController
 @RequestMapping("manufacturer")
+@Slf4j
 public class ManufacturerController {
     @Autowired
     public ManufacturerService manufacturerService;
@@ -51,12 +53,13 @@ public class ManufacturerController {
     @PostMapping("/modify")
     public SaResult editManufacturer(Manufacturer.EditDTO dto) {
         //List<ManufacturerInfo> userInfos = manufacturerService.userLogin(user.getUsername(), user.getPassword());
-        System.out.println("modify Manufacturer");
-        System.out.println(dto);
+        log.info("modify Manufacturer");
+        log.info(String.valueOf(dto));
         var code = manufacturerService.editManufacturer(dto);
 
         String data = switch (code) {
             case 1 -> "修改成功";
+            case -1 -> "生效日期有冲突，需要先删除旧的";
             default -> "未知错误";
         };
 
@@ -70,7 +73,7 @@ public class ManufacturerController {
     })
     @PostMapping("/get")
     public SaResult getManufacturer(Manufacturer.GetDTO dto) {
-        System.out.println("getManufacturers TEST");
+        log.info("getManufacturers TEST");
         var manufacturers = manufacturerService.getManufacturersByProductId(dto.getProductId());
         return SaResult.ok("success").setData(new JSONObject().fluentPut("manufacturers", manufacturers));
     }
@@ -82,7 +85,7 @@ public class ManufacturerController {
     })
     @PostMapping("/delete")
     public SaResult deleteManufacturer(Manufacturer.DeleteDTO dto) {
-        System.out.println("deleteManufacturers TEST");
+        log.info("deleteManufacturers TEST");
         var code = manufacturerService.deprecateManufacturersByUid(dto.getUid());
         String data = switch (code) {
             case 1 -> "删除成功";

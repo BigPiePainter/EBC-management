@@ -33,12 +33,8 @@ public class UserController {
     public TestService testService;
 
 
-    @ApiOperation(value = "登录", notes = "用于用户的登录接口,要么账号或者手机号和密码登录，要么手机和验证码登录，两个选择必须选一个！",
+    @ApiOperation(value = "登录", notes = "没什么解释的",
             httpMethod = "POST")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "username", value = "登录账号", dataType = "String", paramType = "query", dataTypeClass = String.class, example = "554", required = false),
-            @ApiImplicitParam(name = "password", value = "登录密码", dataType = "String", paramType = "query", dataTypeClass = String.class, example = "123456", required = false),
-    })
     @PostMapping("/login")
     public SaResult userLogin(SysUser.LoginDTO user) throws ParseException, JOSEException {
         var userInfos = userService.userLogin(user.getUsername(), user.getPassword());
@@ -48,6 +44,15 @@ public class UserController {
             return SaResult.ok("success").setData(new JSONObject().fluentPut("user", userInfos.get(0)).fluentPut("token", StpUtil.getTokenInfo()));
         }
         return SaResult.ok("success").setData("账号或密码错误");
+    }
+
+    @ApiOperation(value = "登出", notes = "没什么解释的",
+            httpMethod = "POST")
+    @SaCheckLogin
+    @PostMapping("/logout")
+    public SaResult userLogout()  {
+        StpUtil.logout();
+        return SaResult.ok("success").setData("登出成功");
     }
 
     @ApiOperation(value = "注册", notes = "用于用户的注册，账号+密码",
@@ -145,7 +150,7 @@ public class UserController {
 
     /*
     public JsonResult userTokenTest(String token) throws JOSEException, ParseException {
-        System.out.println(token);
+        log.info(token);
         JsonResult success = new JsonResult(this.token.volidToken(token));
         return success;
     }
