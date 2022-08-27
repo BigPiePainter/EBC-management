@@ -51,7 +51,7 @@ public class Product {
 
     @Data
     public static class deleteDTO {
-        private Long uid;
+        private Long id;
     }
 }
 
