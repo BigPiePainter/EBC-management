@@ -270,6 +270,21 @@ public class OrderFileUtils {
 
 
         }
+
+
+        //检查重复
+        log.info(String.valueOf(realRowNum));
+        var set = new HashSet<String>();
+        for (var i = 1; i <= realRowNum; i++) {
+            set.add(sheet.getRow(i).getCell(2).getStringCellValue());
+        }
+        log.info("去重检查完毕");
+        if (set.size() != realRowNum) {
+            state.setCode(-1);
+            state.setState("退单 有退单编号重复的数据, 准确来说重复了 " + (realRowNum - set.size()) + " 个");
+            return false;
+        }
+
         state.setRealRowNum(realRowNum);
         return true;
     }

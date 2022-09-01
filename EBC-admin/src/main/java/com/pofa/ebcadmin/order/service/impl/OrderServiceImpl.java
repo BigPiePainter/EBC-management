@@ -542,19 +542,17 @@ public class OrderServiceImpl implements OrderService {
                 var detectedFakeOrderFragment = new HashMap<Long, FakeOrderInfo>();
                 var detectedFakeOrderPurchasedDateMapFragment = new HashMap<String, ArrayList<FakeOrderInfo>>();
 
-                System.out.println("------");
-                System.out.println(undetectedFakeOrderFragment.size());
-                System.out.println(detectedFakeOrderFragment.size());
-                System.out.println(detectedFakeOrderPurchasedDateMapFragment.size());
+                log.info("开始追溯");
+
                 calendar.setTime(dayFormat.parse(key));
                 for (int j = 0; j < 10; j++) { //从全部订单里追溯10天
                     log.info("剩余未检测：" + undetectedFakeOrderFragment.size());
                     if (undetectedFakeOrderFragment.isEmpty()) break;
                     CustomTableNameHandler.customTableName.set("z_orders_" + dayFormat.format(calendar.getTime()));
-                    var result = orderDao.selectList(new QueryWrapper<OrderInfo>().select("distinct order_id", "order_payment_time").in("order_id", undetectedFakeOrderFragment.values().stream().map(FakeOrderInfo::getId).collect(Collectors.toList())));
+                    var result = orderDao.selectList(new QueryWrapper<OrderInfo>().select("distinct order_id").in("order_id", undetectedFakeOrderFragment.values().stream().map(FakeOrderInfo::getId).toList()));
                     result.forEach(orderInfoFromDatabase -> {
                         var fakeOrder = undetectedFakeOrderFragment.remove(orderInfoFromDatabase.getOrderId());
-                        fakeOrder.setOrderPaymentTime(orderInfoFromDatabase.getOrderPaymentTime());
+                        fakeOrder.setOrderPaymentTime(calendar.getTime());
                         detectedFakeOrderFragment.put(orderInfoFromDatabase.getOrderId(), fakeOrder);
 
                         var belongPurchased = monthFormat.format(fakeOrder.getOrderPaymentTime());
