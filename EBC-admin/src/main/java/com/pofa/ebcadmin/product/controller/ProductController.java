@@ -83,36 +83,36 @@ public class ProductController {
         log.info(String.valueOf(user));
         log.info(String.valueOf(dto));
 
-        //查询所有下级User
-        log.info(String.valueOf(StpUtil.getLoginIdAsLong()));
-        var users = userService.getUserIdsWithinAuthorityById(StpUtil.getLoginIdAsLong());
-        log.info(String.valueOf(users));
+//        //查询所有下级User
+//        log.info(String.valueOf(StpUtil.getLoginIdAsLong()));
+//        var users = userService.getUserIdsWithinAuthorityById(StpUtil.getLoginIdAsLong());
+//        log.info(String.valueOf(users));
 
-        JSONObject data = productService.getProductsByUserIds(users, dto);
-
-
-
-        return SaResult.ok("success").setData(data);
-    }
+        JSONObject data = productService.getProductsByUser(user, dto);
 
 
-    @ApiOperation(value = "获取权限内的事业部, 组别, 商店名等类别", notes = "需要登陆", httpMethod = "POST")
-    @ApiImplicitParams({
-    })
-    @SaCheckLogin
-    @PostMapping("/getCategory")
-    public SaResult getCategory() {
-        log.info("getCategory TEST");
-
-        //查询所有下级User
-        log.info(String.valueOf(StpUtil.getLoginIdAsLong()));
-        var users = userService.getUserIdsWithinAuthorityById(StpUtil.getLoginIdAsLong());
-        log.info(String.valueOf(users));
-
-        JSONObject data = productService.getCategorysByUserIds(users);
 
         return SaResult.ok("success").setData(data);
     }
+
+
+//    @ApiOperation(value = "获取权限内的事业部, 组别, 商店名等类别", notes = "需要登陆", httpMethod = "POST")
+//    @ApiImplicitParams({
+//    })
+//    @SaCheckLogin
+//    @PostMapping("/getCategory")
+//    public SaResult getCategory() {
+//        log.info("getCategory TEST");
+//
+//        //查询所有下级User
+//        log.info(String.valueOf(StpUtil.getLoginIdAsLong()));
+//        var users = userService.getUserIdsWithinAuthorityById(StpUtil.getLoginIdAsLong());
+//        log.info(String.valueOf(users));
+//
+//        JSONObject data = productService.getCategorysByUserIds(users);
+//
+//        return SaResult.ok("success").setData(data);
+//    }
 
     @ApiOperation(value = "删除商品", notes = "将商品挪入回收站", httpMethod = "POST")
     @PostMapping("/delete")

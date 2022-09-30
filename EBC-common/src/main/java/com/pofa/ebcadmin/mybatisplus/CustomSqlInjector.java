@@ -30,6 +30,8 @@ public class CustomSqlInjector extends DefaultSqlInjector {
         return methodList;
     }
 
+    //insert into table (a,b,c) values (1,2,3),
+    //replace into
 
     static class ReplaceBatchSomeColumn extends AbstractMethod {
         @Serial

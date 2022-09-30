@@ -3,6 +3,7 @@ package com.pofa.ebcadmin.product.service;
 import com.alibaba.fastjson2.JSONObject;
 import com.pofa.ebcadmin.product.dto.Product;
 import com.pofa.ebcadmin.product.entity.MismatchProductInfo;
+import com.pofa.ebcadmin.userLogin.entity.UserInfo;
 
 import java.util.List;
 
@@ -11,9 +12,12 @@ public interface ProductService {
 
     int editProduct(Product.EditDTO dto);
 
-    JSONObject getProductsByUserIds(List<Long> idList, Product.GetDTO dto);
+//    JSONObject getProductsByUserIds(List<Long> idList, Product.GetDTO dto);
 
-    JSONObject getCategorysByUserIds(List<Long> idList);
+    JSONObject getProductsByUser(UserInfo user, Product.GetDTO dto);
+
+//    JSONObject getCategorysByUserIds(List<Long> idList);
+
 
     int deprecateProductById(Long id);
 

@@ -4,6 +4,8 @@ package com.pofa.ebcadmin.order.entity;
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.stereotype.Repository;
@@ -16,8 +18,10 @@ import java.util.Date;
 @Repository
 @TableName("refundorders")
 public class RefundOrderInfo {
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long orderId;
     private Date orderPaymentTime;
     private Date orderSetupTime;
@@ -42,4 +46,6 @@ public class RefundOrderInfo {
     private String sellerAddress;
     private String operator;
     private String sellerNote;
+
+    private String shopName;
 }

@@ -17,15 +17,19 @@ import java.util.Date;
 @TableName("users")
 public class UserInfo {
     private Long uid;
-    private Long creatorId;
+
 
 
     private Integer gender;         //女0，男1
     private String contact;
     private String permission;      //JSON格式的权限设计
 
+    private Long department;
+
     private String username;
     private String password;
+
+    private Date onboardingTime;
 
     private String nick;
 

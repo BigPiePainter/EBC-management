@@ -7,6 +7,7 @@ import cn.dev33.satoken.util.SaResult;
 import com.alibaba.fastjson2.JSONObject;
 import com.nimbusds.jose.JOSEException;
 import com.pofa.ebcadmin.userLogin.dto.SysUser;
+import com.pofa.ebcadmin.userLogin.entity.UserInfo;
 import com.pofa.ebcadmin.userLogin.service.TestService;
 import com.pofa.ebcadmin.userLogin.service.UserService;
 import io.swagger.annotations.Api;
@@ -84,6 +85,7 @@ public class UserController {
 
         var data = switch (code) {
             case 1 -> "修改成功";
+            case -100 -> "账号已存在";
             default -> "未知错误";
         };
 
@@ -105,25 +107,24 @@ public class UserController {
     }
 
 
-    @ApiOperation(value = "获取所有下级从属关系", notes = "需要登陆，无法测试",
-            httpMethod = "POST")
-    @ApiImplicitParams({
-    })
-    @SaCheckLogin
-    @PostMapping("/getSubUserRelations")
-    public SaResult getSubUserRelations() {
-        var result = userService.getUserRelationsWithinAuthorityById(StpUtil.getLoginIdAsLong());
-        return SaResult.ok("success").setData(result);
-    }
-
-
-    @ApiOperation(value = "获取所有下级账号信息", notes = "需要登陆，无法测试",
+//    @ApiOperation(value = "获取所有下级从属关系", notes = "需要登陆，无法测试",
+//            httpMethod = "POST")
+//    @ApiImplicitParams({
+//    })
+//    @SaCheckLogin
+//    @PostMapping("/getSubUserRelations")
+//    public SaResult getSubUserRelations() {
+//        var result = userService.getUserRelationsWithinAuthorityById(StpUtil.getLoginIdAsLong());
+//        return SaResult.ok("success").setData(result);
+//    }
+//
+//
+    @ApiOperation(value = "获取所有可操作账号信息", notes = "需要登陆，无法测试",
             httpMethod = "POST")
     @SaCheckLogin
     @PostMapping("/getSubUsers")
     public SaResult getSubUsers() {
-        var users = userService.getUserIdsWithinAuthorityById(StpUtil.getLoginIdAsLong());
-        var userInfos = userService.getUserInfosByIds(users);
+        var userInfos = userService.getUsersWithinAuthorityByUser((UserInfo) StpUtil.getSession().get("user"));
         return SaResult.ok("success").setData(new JSONObject().fluentPut("userInfos", userInfos));
     }
 

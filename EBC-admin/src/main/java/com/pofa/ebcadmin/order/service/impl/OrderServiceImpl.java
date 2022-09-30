@@ -1,11 +1,14 @@
 package com.pofa.ebcadmin.order.service.impl;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.pofa.ebcadmin.mybatisplus.CustomTableNameHandler;
 import com.pofa.ebcadmin.order.dao.DailyReportDao;
 import com.pofa.ebcadmin.order.dao.FakeOrderDao;
 import com.pofa.ebcadmin.order.dao.OrderDao;
 import com.pofa.ebcadmin.order.dao.RefundOrderDao;
+import com.pofa.ebcadmin.order.dto.Order;
 import com.pofa.ebcadmin.order.entity.DailyReportInfo;
 import com.pofa.ebcadmin.order.entity.FakeOrderInfo;
 import com.pofa.ebcadmin.order.entity.OrderInfo;
@@ -28,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -81,28 +85,16 @@ public class OrderServiceImpl implements OrderService {
         var state = new FileState().setFileName(file.getOriginalFilename()).setSize(file.getSize()).setState("排队中");
         FileStateManager.newFile(state.getFileName(), state);
 
-        //fileState会保留10分钟
-        new Thread(() -> {
-            try {
-                Thread.sleep(1000 * 60 * 10);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } finally {
-                FileStateManager.removeFile(state.getFileName());
-            }
-        }).start();
-
         try (InputStream inputStream = file.getInputStream()) {
             _fileProcess(state, inputStream);
         } catch (IOException e) {
             e.printStackTrace();
             log.info("Excel 文件打开失败");
         }
-
     }
 
 
-    public synchronized void _fileProcess(FileState state, InputStream inputStream) throws IOException {
+    public synchronized void _fileProcess(FileState state, InputStream inputStream) {
         log.info(state.getFileName() + " 开始处理");
 
         state.setCode(1); //processing
@@ -137,7 +129,7 @@ public class OrderServiceImpl implements OrderService {
 
             state.setCode(-1); //error
             state.setState("没有匹配到任何文件类型，确保表格的第一行为数据头部");
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             state.setCode(-1); //error
             state.setState("Excel 文件打开失败");
@@ -592,6 +584,8 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
     public List<DailyReportInfo> getDailyReport(Date date) {
         System.out.println("获取利润报表");
         System.out.println(date);
@@ -602,6 +596,25 @@ public class OrderServiceImpl implements OrderService {
         return dailyReportInfo;
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
+    public JSONObject getMismatchFakeOrders(Order.GetPageDTO dto){
+        var page = new Page<FakeOrderInfo>(dto.getPage(), dto.getItemsPerPage());
+        CustomTableNameHandler.customTableName.set("fakeorders");
+        fakeOrderDao.selectPage(page, null);
+        return new JSONObject().fluentPut("fakeorders", page.getRecords()).fluentPut("total", page.getTotal());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
+    public JSONObject getMismatchRefundOrders(Order.GetPageDTO dto){
+        var page = new Page<RefundOrderInfo>(dto.getPage(), dto.getItemsPerPage());
+        CustomTableNameHandler.customTableName.set("refundorders");
+        refundOrderDao.selectPage(page, null);
+        return new JSONObject().fluentPut("refundorders", page.getRecords()).fluentPut("total", page.getTotal());
+    }
+
+
 
     public void _tryMatchMisMatchAllProducts() {
         var mismatchProducts = mismatchProductDao.selectList(new QueryWrapper<MismatchProductInfo>().select("id"));
@@ -610,6 +623,7 @@ public class OrderServiceImpl implements OrderService {
 
         var mismatchProductsIds = mismatchProducts.stream().map(MismatchProductInfo::getId).collect(Collectors.toSet());
         var productIds = products.stream().map(ProductInfo::getId).collect(Collectors.toSet());
+
 
         mismatchProductsIds.forEach(id -> {
             if (productIds.contains(id)) {

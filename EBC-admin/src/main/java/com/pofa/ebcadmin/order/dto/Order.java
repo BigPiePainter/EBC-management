@@ -10,4 +10,15 @@ public class Order {
     public static class GetDailyReportDTO {
         private Date date;
     }
+
+    @Data
+    public static class DeleteFileStateDTO {
+        private String fileName;
+    }
+
+    @Data
+    public static class GetPageDTO {
+        private Long page;
+        private Long itemsPerPage;
+    }
 }

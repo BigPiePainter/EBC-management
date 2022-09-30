@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.pofa.ebcadmin.department.dao.DepartmentDao;
+import com.pofa.ebcadmin.department.entity.DepartmentInfo;
 import com.pofa.ebcadmin.mybatisplus.CustomTableNameHandler;
 import com.pofa.ebcadmin.order.dao.OrderDao;
 import com.pofa.ebcadmin.order.entity.FakeOrderInfo;
@@ -22,6 +24,9 @@ import com.pofa.ebcadmin.product.entity.ProductInfo;
 import com.pofa.ebcadmin.product.entity.SkuInfo;
 import com.pofa.ebcadmin.product.service.AscriptionService;
 import com.pofa.ebcadmin.product.service.ProductService;
+import com.pofa.ebcadmin.team.dao.TeamDao;
+import com.pofa.ebcadmin.team.entity.TeamInfo;
+import com.pofa.ebcadmin.userLogin.entity.UserInfo;
 import com.pofa.ebcadmin.utils.Convert;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -33,6 +38,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.sql.Array;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -64,6 +70,12 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     public MismatchProductDao mismatchProductDao;
+
+    @Autowired
+    public DepartmentDao departmentDao;
+
+    @Autowired
+    public TeamDao teamDao;
 
 
     @Override
@@ -114,8 +126,8 @@ public class ProductServiceImpl implements ProductService {
                             .last("limit 1")
             );
 
-            if (list.size() == 1){
-                if (list.get(0).getStartTime().getTime() == dto.getStartTime().getTime()){
+            if (list.size() == 1) {
+                if (list.get(0).getStartTime().getTime() == dto.getStartTime().getTime()) {
                     return -1;
                 }
             }
@@ -161,7 +173,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
-    public JSONObject getProductsByUserIds(List<Long> users, Product.GetDTO dto) {
+    public JSONObject getProductsByUser(UserInfo user, Product.GetDTO dto) {
 
         //json格式的匹配规则：select类别匹配，search模糊匹配
         var match = JSON.parseObject(dto.getMatch(), JSONObject.class);
@@ -171,8 +183,44 @@ public class ProductServiceImpl implements ProductService {
         log.info(String.valueOf(search));
         log.info("------------------");
 
-        //sql待优化，暂时不需要
-        var wrapper = new QueryWrapper<ProductInfo>().in("owner", users).eq("deprecated", false);
+        var wrapper = new QueryWrapper<ProductInfo>().eq("deprecated", false);
+
+
+        if (user.getUid() != 1L) {
+            var departments = departmentDao.selectList(new QueryWrapper<DepartmentInfo>().select("uid", "admin"));
+            var teams = teamDao.selectList(new QueryWrapper<TeamInfo>().select("uid", "admin"));
+            System.out.println(departments);
+            System.out.println(teams);
+
+            var departmentIds = new ArrayList<Long>();
+            departments.forEach(departmentInfo -> {
+                if (departmentInfo.getAdmin().isEmpty()) return;
+                if (List.of(departmentInfo.getAdmin().split(",")).contains(user.getUid().toString())) {
+                    departmentIds.add(departmentInfo.getUid());
+                }
+            });
+
+            var teamIds = new ArrayList<Long>();
+            teams.forEach(teamInfo -> {
+                if (teamInfo.getAdmin().isEmpty()) return;
+                if (List.of(teamInfo.getAdmin().split(",")).contains(user.getUid().toString())) {
+                    teamIds.add(teamInfo.getUid());
+                }
+            });
+
+            if (!departmentIds.isEmpty() && !teamIds.isEmpty()) {
+                wrapper.and(i -> i.in("department", departmentIds).or().in("team", teamIds));
+            } else if (!departmentIds.isEmpty()) {
+                wrapper.in("department", departmentIds);
+            } else if (!teamIds.isEmpty()) {
+                wrapper.in("team", teamIds);
+            } else {
+                wrapper.in("owner", user.getUid());
+            }
+
+
+        }
+
 
         //类别删选
         for (Map.Entry<String, Object> entry : select.entrySet()) {
@@ -191,53 +239,52 @@ public class ProductServiceImpl implements ProductService {
             wrapper.like(Convert.camelToUnderScore(entry.getKey()), value);
         }
 
-
         var page = new Page<ProductInfo>(dto.getPage(), dto.getItemsPerPage());
         productDao.selectPage(page, wrapper);
         return new JSONObject().fluentPut("products", page.getRecords()).fluentPut("total", page.getTotal());
     }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
-    public JSONObject getCategorysByUserIds(List<Long> users) {
-        var data = new JSONObject();
-
-        //有提升空间，暂时不需要
-
-        var targets = new ArrayList<String>();
-        targets.add("department");
-        targets.add("team");
-        targets.add("owner");
-        targets.add("shop_name");
-        targets.add("first_category");
-        targets.add("transport_way");
-
-        List<ProductInfo> results;
-        for (var col : targets) {
-            var array = new JSONArray();
-
-//            var wrapper = new QueryWrapper<ProductInfo>().select(col).groupBy(col).and(i -> {
-//                for (Long id : users) i.eq("owner", id).or();
-//            });
-
-            var wrapper = new QueryWrapper<ProductInfo>().select(col).groupBy(col).in("owner", users);
-
-            results = productDao.selectList(wrapper);
-            results.forEach(item -> array.add(switch (col) {
-                case "department" -> item.getDepartment();
-                case "team" -> item.getTeam();
-                case "owner" -> item.getOwner();
-                case "shop_name" -> item.getShopName();
-                case "first_category" -> item.getFirstCategory();
-                case "transport_way" -> item.getTransportWay();
-                default -> "ERROR";
-            }));
-            data.put(Convert.underScoreToCamel(col), array);
-        }
-
-        log.info(String.valueOf(data));
-        return data;
-    }
+//    @Override
+//    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
+//    public JSONObject getCategorysByUserIds(List<Long> users) {
+//        var data = new JSONObject();
+//
+//        //有提升空间，暂时不需要
+//
+//        var targets = new ArrayList<String>();
+//        targets.add("department");
+//        targets.add("team");
+//        targets.add("owner");
+//        targets.add("shop_name");
+//        targets.add("first_category");
+//        targets.add("transport_way");
+//
+//        List<ProductInfo> results;
+//        for (var col : targets) {
+//            var array = new JSONArray();
+//
+////            var wrapper = new QueryWrapper<ProductInfo>().select(col).groupBy(col).and(i -> {
+////                for (Long id : users) i.eq("owner", id).or();
+////            });
+//
+//            var wrapper = new QueryWrapper<ProductInfo>().select(col).groupBy(col).in("owner", users);
+//
+//            results = productDao.selectList(wrapper);
+//            results.forEach(item -> array.add(switch (col) {
+//                case "department" -> item.getDepartment();
+//                case "team" -> item.getTeam();
+//                case "owner" -> item.getOwner();
+//                case "shop_name" -> item.getShopName();
+//                case "first_category" -> item.getFirstCategory();
+//                case "transport_way" -> item.getTransportWay();
+//                default -> "ERROR";
+//            }));
+//            data.put(Convert.underScoreToCamel(col), array);
+//        }
+//
+//        log.info(String.valueOf(data));
+//        return data;
+//    }
 
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
@@ -251,7 +298,7 @@ public class ProductServiceImpl implements ProductService {
 
     public List<MismatchProductInfo> getMismatchProducts() {
         var mismatchProducts = mismatchProductDao.selectList(null);
-        if (mismatchProducts.isEmpty()){
+        if (mismatchProducts.isEmpty()) {
             return mismatchProducts;
         }
 

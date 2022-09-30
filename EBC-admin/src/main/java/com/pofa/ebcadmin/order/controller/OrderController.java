@@ -48,6 +48,31 @@ public class OrderController {
         return SaResult.ok("success").setData(new JSONObject().fluentPut("fileStates", FileStateManager.getStates()));
     }
 
+
+    @ApiOperation(value = "删除某个文件处理状态", notes = "",
+            httpMethod = "POST")
+    @PostMapping("/deleteFileProcessState")
+    public SaResult deleteFileProcessState(Order.DeleteFileStateDTO dto) {
+        for (var fileName:dto.getFileName().split("!@#!#@!@#")) {
+            FileStateManager.removeFile(fileName);
+        }
+        return SaResult.ok("success");
+    }
+
+    @ApiOperation(value = "获取未匹配退单", notes = "",
+            httpMethod = "POST")
+    @PostMapping("/getMismatchRefundOrders")
+    public SaResult getMismatchRefundOrders(Order.GetPageDTO dto) {
+        return SaResult.ok("success").setData(new JSONObject().fluentPut("mismatchRefundOrders", orderService.getMismatchRefundOrders(dto)));
+    }
+
+    @ApiOperation(value = "获取未匹配刷单", notes = "",
+            httpMethod = "POST")
+    @PostMapping("/getMismatchFakeOrders")
+    public SaResult getMismatchFakeOrders(Order.GetPageDTO dto) {
+        return SaResult.ok("success").setData(new JSONObject().fluentPut("mismatchFakeOrders", orderService.getMismatchFakeOrders(dto)));
+    }
+
     @ApiOperation(value = "获取利润报表", notes = "根据日期",
             httpMethod = "POST")
     @PostMapping("/getDailyReport")

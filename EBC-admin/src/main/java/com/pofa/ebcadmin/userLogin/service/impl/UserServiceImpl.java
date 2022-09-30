@@ -1,8 +1,14 @@
 package com.pofa.ebcadmin.userLogin.service.impl;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.pofa.ebcadmin.department.dao.DepartmentDao;
+import com.pofa.ebcadmin.department.entity.DepartmentInfo;
+import com.pofa.ebcadmin.product.entity.ProductInfo;
+import com.pofa.ebcadmin.team.dao.TeamDao;
 import com.pofa.ebcadmin.team.dto.Team;
 import com.pofa.ebcadmin.team.entity.TeamInfo;
 import com.pofa.ebcadmin.userLogin.dao.UserDao;
@@ -30,6 +36,14 @@ public class UserServiceImpl implements UserService {
     @Autowired
     public UserInfo userInfo;
 
+
+    @Autowired
+    public DepartmentDao departmentDao;
+
+    @Autowired
+    public TeamDao teamDao;
+
+
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, timeout = 30 * 1000)
     public int userRegistry(SysUser.RegistDTO dto) {
@@ -48,7 +62,8 @@ public class UserServiceImpl implements UserService {
         log.info(String.valueOf(dto));
         if (userInfos.isEmpty()) {
             return userDao.insert(userInfo
-                    .setCreatorId(dto.getCreatorId())
+                    .setDepartment(dto.getDepartment())
+                    .setOnboardingTime(dto.getOnboardingTime())
                     .setGender(dto.getGender())
                     .setContact(dto.getContact())
                     .setPermission(dto.getPermission())
@@ -64,8 +79,13 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
     public int editUser(SysUser.EditDTO dto) {
+        if (!userDao.selectList(new QueryWrapper<UserInfo>().ne("uid", dto.getUid()).eq("username", dto.getUsername())).isEmpty()) {
+            return -100;
+        }
+
         return userDao.update(userInfo
-                        .setCreatorId(dto.getCreatorId())
+                        .setDepartment(dto.getDepartment())
+                        .setOnboardingTime(dto.getOnboardingTime())
                         .setGender(dto.getGender())
                         .setContact(dto.getContact())
                         .setPermission(dto.getPermission())
@@ -85,29 +105,46 @@ public class UserServiceImpl implements UserService {
         return userDao.selectList(wrapper);
     }
 
+//    @Override
+//    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
+//    public JSONObject getUserRelationsWithinAuthorityById(Long id) {
+//
+//        // 张清宇 2022-07-19
+//        // 如果有一天需要优化下面的数据库树状结构递归查询，优化方案如下
+//        // https://www.sitepoint.com/hierarchical-data-database-2/
+//
+//        var subUser = new JSONObject();
+//        QueryWrapper<UserInfo> wrapper = new QueryWrapper<>();
+//        wrapper.eq("creator_id", id).select("uid");
+//        var users = userDao.selectList(wrapper);
+//        for (UserInfo user : users) {
+//            subUser.put(user.getUid().toString(), _getUserRelationsWithinAuthorityById(user.getUid()));
+//        }
+//        return new JSONObject().fluentPut(id.toString(), subUser);
+//    }
+
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
-    public JSONObject getUserRelationsWithinAuthorityById(Long id) {
+    public List<UserInfo> getUsersWithinAuthorityByUser(UserInfo user) {
 
-        // 张清宇 2022-07-19
-        // 如果有一天需要优化下面的数据库树状结构递归查询，优化方案如下
-        // https://www.sitepoint.com/hierarchical-data-database-2/
 
-        var subUser = new JSONObject();
-        QueryWrapper<UserInfo> wrapper = new QueryWrapper<>();
-        wrapper.eq("creator_id", id).select("uid");
-        var users = userDao.selectList(wrapper);
-        for (UserInfo user : users) {
-            subUser.put(user.getUid().toString(), _getUserRelationsWithinAuthorityById(user.getUid()));
+        var wrapper = new QueryWrapper<UserInfo>();
+
+
+        if (user.getUid() != 1L) {
+
+            var permission = JSON.parseObject(user.getPermission());
+            System.out.println(permission);
+            var departmentIds = permission.getJSONObject("c").getJSONArray("d").stream().map(i -> Long.valueOf((Integer) i)).toList();
+            System.out.println(departmentIds);
+            if (!departmentIds.isEmpty()) {
+                wrapper.in("department", departmentIds);
+            }
+
         }
-        return new JSONObject().fluentPut(id.toString(), subUser);
-    }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
-    public List<Long> getUserIdsWithinAuthorityById(Long id) {
-        var users = _getUsersWithinAuthorityById(id);
-        users.add(id);
+        var users = userDao.selectList(wrapper);
+
         return users;
     }
 
@@ -123,27 +160,27 @@ public class UserServiceImpl implements UserService {
         return userDao.selectList(new QueryWrapper<UserInfo>().select("uid", "username", "nick", "contact", "permission", "note"));
     }
 
-    private JSONObject _getUserRelationsWithinAuthorityById(Long id) {
-        var subUser = new JSONObject();
-        QueryWrapper<UserInfo> wrapper = new QueryWrapper<>();
-        wrapper.eq("creator_id", id).select("uid");
-        var users = userDao.selectList(wrapper);
-        for (UserInfo user : users) {
-            subUser.put(user.getUid().toString(), _getUserRelationsWithinAuthorityById(user.getUid()));
-        }
-        return subUser;
-    }
-
-    public List<Long> _getUsersWithinAuthorityById(Long id) {
-        var subUser = new ArrayList<Long>();
-        QueryWrapper<UserInfo> wrapper = new QueryWrapper<>();
-        wrapper.eq("creator_id", id).select("uid");
-        var users = userDao.selectList(wrapper);
-        for (UserInfo user : users) {
-            subUser.add(user.getUid());
-            subUser.addAll(_getUsersWithinAuthorityById(user.getUid()));
-        }
-        return subUser;
-    }
+//    private JSONObject _getUserRelationsWithinAuthorityById(Long id) {
+//        var subUser = new JSONObject();
+//        QueryWrapper<UserInfo> wrapper = new QueryWrapper<>();
+//        wrapper.eq("creator_id", id).select("uid");
+//        var users = userDao.selectList(wrapper);
+//        for (UserInfo user : users) {
+//            subUser.put(user.getUid().toString(), _getUserRelationsWithinAuthorityById(user.getUid()));
+//        }
+//        return subUser;
+//    }
+//
+//    public List<Long> _getUsersWithinAuthorityById(Long id) {
+//        var subUser = new ArrayList<Long>();
+//        QueryWrapper<UserInfo> wrapper = new QueryWrapper<>();
+//        wrapper.eq("creator_id", id).select("uid");
+//        var users = userDao.selectList(wrapper);
+//        for (UserInfo user : users) {
+//            subUser.add(user.getUid());
+//            subUser.addAll(_getUsersWithinAuthorityById(user.getUid()));
+//        }
+//        return subUser;
+//    }
 
 }

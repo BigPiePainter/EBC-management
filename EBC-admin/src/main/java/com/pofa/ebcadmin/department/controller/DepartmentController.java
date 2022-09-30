@@ -25,7 +25,6 @@ public class DepartmentController {
     @Autowired
     public DepartmentService departmentService;
 
-
     @ApiOperation(value = "添加部门", notes = "",
             httpMethod = "POST")
     @PostMapping("/add")

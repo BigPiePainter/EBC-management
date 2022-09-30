@@ -4,6 +4,8 @@ package com.pofa.ebcadmin.order.entity;
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import io.swagger.models.auth.In;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -17,7 +19,9 @@ import java.util.Date;
 @Repository
 @TableName("orders")
 public class OrderInfo {
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long orderId;
     private String paymentId;
     private BigDecimal amount;

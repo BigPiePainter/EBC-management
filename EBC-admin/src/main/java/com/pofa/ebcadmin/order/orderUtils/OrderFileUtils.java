@@ -112,7 +112,7 @@ public class OrderFileUtils {
         log.info("去重检查完毕");
         if (set.size() != realRowNum) {
             state.setCode(-1);
-            state.setState("退单 有子订单id重复的数据, 准确来说重复了 " + (realRowNum - set.size()) + " 个");
+            state.setState("订单 有子订单id重复的数据, 准确来说重复了 " + (realRowNum - set.size()) + " 个");
             return false;
         }
 
@@ -281,7 +281,7 @@ public class OrderFileUtils {
         log.info("去重检查完毕");
         if (set.size() != realRowNum) {
             state.setCode(-1);
-            state.setState("退单 有退单编号重复的数据, 准确来说重复了 " + (realRowNum - set.size()) + " 个");
+            state.setState("补单 有退单编号重复的数据, 准确来说重复了 " + (realRowNum - set.size()) + " 个");
             return false;
         }
 
