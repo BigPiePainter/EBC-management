@@ -591,7 +591,7 @@ public class OrderServiceImpl implements OrderService {
         System.out.println(date);
         var dailyReportInfo = dailyReportDao.calculateDailyReport(monthFormat.format(date), dayFormat.format(date));
         System.out.println("--------结果");
-        System.out.println(dailyReportInfo);
+        //System.out.println(dailyReportInfo);
 
         return dailyReportInfo;
     }

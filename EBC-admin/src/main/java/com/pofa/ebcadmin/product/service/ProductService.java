@@ -14,7 +14,8 @@ public interface ProductService {
 
 //    JSONObject getProductsByUserIds(List<Long> idList, Product.GetDTO dto);
 
-    JSONObject getProductsByUser(UserInfo user, Product.GetDTO dto);
+    JSONObject getProductsByUser(UserInfo user, Product.GetDTO dto, boolean deprecated);
+
 
 //    JSONObject getCategorysByUserIds(List<Long> idList);
 

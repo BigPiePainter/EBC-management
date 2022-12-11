@@ -69,12 +69,12 @@ public class ProductController {
 
 
 
-    @ApiOperation(value = "获取权限内的商品列表", notes = "需要登陆, 无法直接测试", httpMethod = "POST")
+    @ApiOperation(value = "获取权限内的商品清单", notes = "需要登陆, 无法直接测试", httpMethod = "POST")
     @ApiImplicitParams({
    })
     @SaCheckLogin
     @PostMapping("/getByPermission")
-    public SaResult productGet(Product.GetDTO dto) {
+    public SaResult getByPermission(Product.GetDTO dto) {
         log.info("GET TEST");
         if (!StpUtil.isLogin()){
             return SaResult.ok("success").setData("用户未登录");
@@ -88,7 +88,33 @@ public class ProductController {
 //        var users = userService.getUserIdsWithinAuthorityById(StpUtil.getLoginIdAsLong());
 //        log.info(String.valueOf(users));
 
-        JSONObject data = productService.getProductsByUser(user, dto);
+        JSONObject data = productService.getProductsByUser(user, dto, false);
+
+
+
+        return SaResult.ok("success").setData(data);
+    }
+
+    @ApiOperation(value = "获取权限内的商品清单", notes = "需要登陆, 无法直接测试", httpMethod = "POST")
+    @ApiImplicitParams({
+    })
+    @SaCheckLogin
+    @PostMapping("/getDeprecatedByPermission")
+    public SaResult getDeprecatedByPermission(Product.GetDTO dto) {
+        log.info("GET Deprecated TEST");
+        if (!StpUtil.isLogin()){
+            return SaResult.ok("success").setData("用户未登录");
+        }
+        UserInfo user = (UserInfo) StpUtil.getSession().get("user");
+        log.info(String.valueOf(user));
+        log.info(String.valueOf(dto));
+
+//        //查询所有下级User
+//        log.info(String.valueOf(StpUtil.getLoginIdAsLong()));
+//        var users = userService.getUserIdsWithinAuthorityById(StpUtil.getLoginIdAsLong());
+//        log.info(String.valueOf(users));
+
+        JSONObject data = productService.getProductsByUser(user, dto, true);
 
 
 
@@ -124,7 +150,7 @@ public class ProductController {
         log.info(String.valueOf(code));
 
         String data = switch (code) {
-            case 1 -> "删除成功";
+            case 1 -> "商品已移动到回收站";
             default -> "未知错误";
         };
 

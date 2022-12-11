@@ -47,6 +47,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ProductServiceImpl implements ProductService {
 
+    //未匹配商品缓存
+    private List<MismatchProductInfo> mismatchProducts;
+    private Long mismatchProductsRefreshTimestamp = 0L;
+    private int mismatchProductsCount = 0;
+
     private static final SimpleDateFormat dayFormat = new SimpleDateFormat("yyyyMMdd");
 
     @Autowired
@@ -173,7 +178,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
-    public JSONObject getProductsByUser(UserInfo user, Product.GetDTO dto) {
+    public JSONObject getProductsByUser(UserInfo user, Product.GetDTO dto, boolean deprecated) {
 
         //json格式的匹配规则：select类别匹配，search模糊匹配
         var match = JSON.parseObject(dto.getMatch(), JSONObject.class);
@@ -183,7 +188,7 @@ public class ProductServiceImpl implements ProductService {
         log.info(String.valueOf(search));
         log.info("------------------");
 
-        var wrapper = new QueryWrapper<ProductInfo>().eq("deprecated", false);
+        var wrapper = new QueryWrapper<ProductInfo>().eq("deprecated", deprecated);
 
 
         if (user.getUid() != 1L) {
@@ -214,10 +219,10 @@ public class ProductServiceImpl implements ProductService {
                 wrapper.in("department", departmentIds);
             } else if (!teamIds.isEmpty()) {
                 wrapper.in("team", teamIds);
-            } else {
-                wrapper.in("owner", user.getUid());
             }
 
+            //自己的持品
+            wrapper.in("owner", user.getUid());
 
         }
 
@@ -296,11 +301,16 @@ public class ProductServiceImpl implements ProductService {
         mismatchProductDao.delete(new QueryWrapper<MismatchProductInfo>().eq("id", productId));
     }
 
-    public List<MismatchProductInfo> getMismatchProducts() {
+    public synchronized List<MismatchProductInfo> getMismatchProducts() {
         var mismatchProducts = mismatchProductDao.selectList(null);
         if (mismatchProducts.isEmpty()) {
             return mismatchProducts;
         }
+
+        if (System.currentTimeMillis() < this.mismatchProductsRefreshTimestamp + 60 * 10 * 1000 && mismatchProducts.size() == this.mismatchProductsCount) {
+            return this.mismatchProducts;
+        }
+        this.mismatchProductsCount = mismatchProducts.size();
 
         mismatchProducts.forEach(mismatchProduct -> mismatchProduct.setTotalAmount(BigDecimal.valueOf(0)));
 
@@ -319,7 +329,11 @@ public class ProductServiceImpl implements ProductService {
             });
             calendar.add(Calendar.DATE, -1);
         }
-        return mismatchProductMap.values().stream().toList();
+
+        this.mismatchProducts = mismatchProductMap.values().stream().toList();
+        this.mismatchProductsRefreshTimestamp = System.currentTimeMillis();
+
+        return this.mismatchProducts;
     }
 
 }

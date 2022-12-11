@@ -22,7 +22,7 @@
         <mybatisplus.version>3.5.1</mybatisplus.version>
         <mysql.version>8.0.29</mysql.version>
         <fastjson.version>2.0.3</fastjson.version>
-        <apache.poi.version>5.2.2</apache.poi.version>
+        <apache.poi.version>5.2.3</apache.poi.version>
     </properties>
 
 
