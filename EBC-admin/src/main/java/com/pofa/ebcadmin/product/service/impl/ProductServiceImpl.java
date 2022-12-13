@@ -238,10 +238,13 @@ public class ProductServiceImpl implements ProductService {
 
         //模糊查找
         for (Map.Entry<String, Object> entry : search.entrySet()) {
-            var value = (String) (entry.getValue());
-            if (value.isEmpty()) continue;
-
-            wrapper.like(Convert.camelToUnderScore(entry.getKey()), value);
+            if (entry.getValue() instanceof JSONArray values) {
+                if (values.isEmpty()) continue;
+                wrapper.in(Convert.camelToUnderScore(entry.getKey()), values.stream().toList());
+            } else if (entry.getValue() instanceof String value) {
+                if (value.isEmpty()) continue;
+                wrapper.like(Convert.camelToUnderScore(entry.getKey()), value);
+            }
         }
 
         var page = new Page<ProductInfo>(dto.getPage(), dto.getItemsPerPage());

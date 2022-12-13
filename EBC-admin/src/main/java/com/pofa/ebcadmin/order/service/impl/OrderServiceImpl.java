@@ -4,23 +4,19 @@ import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.pofa.ebcadmin.mybatisplus.CustomTableNameHandler;
-import com.pofa.ebcadmin.order.dao.DailyReportDao;
 import com.pofa.ebcadmin.order.dao.FakeOrderDao;
 import com.pofa.ebcadmin.order.dao.OrderDao;
 import com.pofa.ebcadmin.order.dao.RefundOrderDao;
 import com.pofa.ebcadmin.order.dto.Order;
-import com.pofa.ebcadmin.order.entity.DailyReportInfo;
 import com.pofa.ebcadmin.order.entity.FakeOrderInfo;
 import com.pofa.ebcadmin.order.entity.OrderInfo;
 import com.pofa.ebcadmin.order.entity.RefundOrderInfo;
-import com.pofa.ebcadmin.order.orderUtils.FileState;
-import com.pofa.ebcadmin.order.orderUtils.FileStateManager;
 import com.pofa.ebcadmin.order.service.OrderService;
 import com.pofa.ebcadmin.product.dao.MismatchProductDao;
 import com.pofa.ebcadmin.product.dao.ProductDao;
 import com.pofa.ebcadmin.product.entity.MismatchProductInfo;
 import com.pofa.ebcadmin.product.entity.ProductInfo;
-import com.pofa.ebcadmin.product.service.impl.ProductServiceImpl;
+import com.pofa.ebcadmin.order.orderUtils.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +27,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -67,9 +62,6 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     public RefundOrderDao refundOrderDao;
 
-
-    @Autowired
-    public DailyReportDao dailyReportDao;
 
     @Autowired
     public MismatchProductDao mismatchProductDao;
@@ -582,18 +574,6 @@ public class OrderServiceImpl implements OrderService {
 
             }
         }
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
-    public List<DailyReportInfo> getDailyReport(Date date) {
-        System.out.println("获取利润报表");
-        System.out.println(date);
-        var dailyReportInfo = dailyReportDao.calculateDailyReport(monthFormat.format(date), dayFormat.format(date));
-        System.out.println("--------结果");
-        //System.out.println(dailyReportInfo);
-
-        return dailyReportInfo;
     }
 
     @Override

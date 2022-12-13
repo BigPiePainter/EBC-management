@@ -1,7 +1,7 @@
-package com.pofa.ebcadmin.order.dao;
+package com.pofa.ebcadmin.profitReport.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.pofa.ebcadmin.order.entity.DailyReportInfo;
+import com.pofa.ebcadmin.profitReport.entity.ProfitReportInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -10,9 +10,10 @@ import java.util.List;
 
 
 @Mapper
-public interface DailyReportDao extends BaseMapper<DailyReportInfo> {
+public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
 
     @Select("""
+            
             WITH product_ascription AS (
               SELECT
                 a.product,
@@ -28,11 +29,32 @@ public interface DailyReportDao extends BaseMapper<DailyReportInfo> {
                   FROM
                     pofa.ascriptions
                   where
-                    start_time <= ${monthDate}
+                    start_time <=${monthDate}
                   group by
                     product
                 ) as b on a.product = b.product
                 and a.start_time = b.start_time
+            ),
+            fake_order AS (
+              select
+                id,
+                brokerage
+              from
+                z_fakeorders_purchased_${month}
+              where
+                order_payment_time =${monthDate}
+            ),
+            product_orders AS (
+              select
+                product_id,
+                product_count,
+                actual_amount,
+                sku_name,
+                brokerage
+              from
+                z_orders_${monthDate}
+                LEFT JOIN fake_order on z_orders_${monthDate}.order_id = fake_order.id
+                join product_ascription on z_orders_${monthDate}.product_id = product_ascription.product
             ),
             manufacturers_temp AS (
               SELECT
@@ -50,7 +72,7 @@ public interface DailyReportDao extends BaseMapper<DailyReportInfo> {
                   FROM
                     pofa.manufacturers
                   where
-                    start_time <= ${monthDate}
+                    start_time <=${monthDate}
                   group by
                     product_id
                 ) as b on a.product_id = b.product_id
@@ -91,7 +113,7 @@ public interface DailyReportDao extends BaseMapper<DailyReportInfo> {
                   FROM
                     pofa.categoryhistorys
                   where
-                    start_time <= ${monthDate}
+                    start_time <=${monthDate}
                   group by
                     category_id
                 ) as b on a.category_id = b.category_id
@@ -116,16 +138,6 @@ public interface DailyReportDao extends BaseMapper<DailyReportInfo> {
                 ) as b on a.category_id = b.category_id
                 and a.create_time = b.create_time
             ),
-            product_orders AS (
-              select
-                z_orders_${monthDate}.product_id,
-                product_count,
-                actual_amount,
-                sku_name
-              from
-                product_ascription
-                join z_orders_${monthDate} on z_orders_${monthDate}.product_id = product_ascription.product
-            ),
             a AS (
               SELECT
                 product_id,
@@ -137,7 +149,7 @@ public interface DailyReportDao extends BaseMapper<DailyReportInfo> {
               GROUP BY
                 product_id
             ),
-            skus_temp AS (
+            sku_temp AS (
               SELECT
                 a.sku_id,
                 sku_name,
@@ -155,7 +167,7 @@ public interface DailyReportDao extends BaseMapper<DailyReportInfo> {
                   FROM
                     pofa.skus
                   where
-                    start_time <= ${monthDate}
+                    start_time <=${monthDate}
                   group by
                     sku_id
                 ) as b on a.sku_id = b.sku_id
@@ -170,23 +182,26 @@ public interface DailyReportDao extends BaseMapper<DailyReportInfo> {
                 sku_name,
                 a.start_time
               FROM
-                skus_temp a
+                sku_temp a
                 join (
                   SELECT
                     sku_id,
                     max(create_time) as create_time
                   FROM
-                    skus_temp
+                    sku_temp
                   group by
                     sku_id
                 ) as b on a.sku_id = b.sku_id
                 and a.create_time = b.create_time
             ),
-            sku_info AS (
+            product_statistic AS (
               select
                 product_id,
                 sum(total_price) as total_price,
                 sum(total_cost) as total_cost,
+                sum(total_brokerage) as total_brokerage,
+                sum(total_fake_amount) as total_fake_amount,
+                sum(fake_count) as total_fake_count,
                 count(*) - count(sku_price) as wrong_count
               from
                 (
@@ -197,13 +212,19 @@ public interface DailyReportDao extends BaseMapper<DailyReportInfo> {
                     sku_price,
                     sku_cost,
                     product_count * sku_price as total_price,
-                    product_count * sku_cost as total_cost
+                    (product_count - fake_count) * sku_cost as total_cost,
+                    total_brokerage,
+                    total_fake_amount,
+                    fake_count
                   from
                     (
                       select
                         product_id,
                         sku_name,
-                        sum(product_count) as product_count
+                        sum(product_count) as product_count,
+                        count(brokerage) as fake_count,
+                        sum(brokerage) as total_brokerage,
+                        sum(if (brokerage > 0, actual_amount, 0)) as total_fake_amount -- 判断是否刷单
                       from
                         product_orders
                       group by
@@ -216,53 +237,26 @@ public interface DailyReportDao extends BaseMapper<DailyReportInfo> {
               group by
                 product_id
             ),
-            refund_order AS (
+            finished_refund_order_amount AS (
               SELECT
-                product_id,
-                refund_amount,
-                express_status
+                product_id as refund_product_id,
+                sum(refund_amount) as total_refund_amount,
+                sum(if (express_status = false, refund_amount, 0)) as total_refund_with_no_ship_amount
               FROM
-                pofa.z_refundorders_finished_${month}
-                join product_ascription on z_refundorders_finished_${month}.product_id = product_ascription.product
-              where
-                refund_end_time = ${monthDate}
-                AND refund_status = 1
-            ),
-            b AS (
-              select
-                total_refund_amount.product_id as refund_product_id,
-                total_refund_amount,
-                total_refund_with_no_ship_amount
-              from
                 (
                   SELECT
                     product_id,
-                    sum(refund_amount) as total_refund_amount
+                    refund_amount,
+                    express_status
                   FROM
-                    refund_order
-                  group by
-                    product_id
-                ) as total_refund_amount
-                left join (
-                  SELECT
-                    product_id,
-                    sum(refund_amount) as total_refund_with_no_ship_amount
-                  FROM
-                    refund_order
+                    pofa.z_refundorders_finished_${month}
+                    join product_ascription on z_refundorders_finished_${month}.product_id = product_ascription.product
                   where
-                    express_status = false
-                  group by
-                    product_id
-                ) as refund_with_no_ship on total_refund_amount.product_id = refund_with_no_ship.product_id
-            ),
-            c AS (
-              select
-                id,
-                brokerage
-              from
-                z_fakeorders_purchased_${month}
-              where
-                order_payment_time = ${monthDate}
+                    refund_end_time =${monthDate}
+                    AND refund_status = 1
+                ) as a
+              group by
+                product_id
             ),
             d AS (
               select
@@ -289,7 +283,7 @@ public interface DailyReportDao extends BaseMapper<DailyReportInfo> {
               total_amount,
               total_refund_amount,
               total_refund_with_no_ship_amount,
-              fake_order_count,
+              total_fake_count,
               total_fake_amount,
               total_brokerage,
               total_price,
@@ -303,41 +297,28 @@ public interface DailyReportDao extends BaseMapper<DailyReportInfo> {
                   product_count,
                   total_amount,
                   total_refund_amount,
-                  total_refund_with_no_ship_amount,
-                  fake_order_count,
-                  total_fake_amount,
-                  total_brokerage
+                  total_refund_with_no_ship_amount
                 from
                   (
                     SELECT
                       *
                     FROM
                       a
-                      LEFT JOIN b ON a.product_id = b.refund_product_id
+                      LEFT JOIN finished_refund_order_amount ON a.product_id = finished_refund_order_amount.refund_product_id
                     UNION
                     SELECT
                       *
                     FROM
                       a
-                      RIGHT JOIN b ON a.product_id = b.refund_product_id
+                      RIGHT JOIN finished_refund_order_amount ON a.product_id = finished_refund_order_amount.refund_product_id
                   ) as z
-                  left join (
-                    select
-                      product_id as fake_order_product_id,
-                      count(*) as fake_order_count,
-                      sum(actual_amount) as total_fake_amount,
-                      sum(brokerage) as total_brokerage
-                    from
-                      c
-                      left join d on c.id = d.order_id
-                    group by
-                      fake_order_product_id
-                  ) as h on z.product_id = h.fake_order_product_id
               ) as i
               join product_ascription on i.product_id = product_ascription.product
               join pofa.products on i.product_id = pofa.products.id
               left join manufacturers on i.product_id = manufacturers.product_id
               left join first_category on pofa.products.first_category = first_category.category_id
-              left join sku_info on i.product_id = sku_info.product_id;""")
-    List<DailyReportInfo> calculateDailyReport(@Param("month") String month, @Param("monthDate") String monthDate);
+              left join product_statistic on i.product_id = product_statistic.product_id;
+            
+            """)
+    List<ProfitReportInfo> calculateDailyReport(@Param("month") String month, @Param("monthDate") String monthDate);
 }

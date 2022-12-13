@@ -7,8 +7,6 @@ import com.pofa.ebcadmin.order.dto.Order;
 import com.pofa.ebcadmin.order.orderUtils.FileStateManager;
 import com.pofa.ebcadmin.order.service.OrderService;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +35,8 @@ public class OrderController {
         log.info(String.valueOf(file));
         orderService.fileProcess(file);
         log.info("返回上传结果");
+
+
         return SaResult.ok("success");
     }
 
@@ -72,15 +72,4 @@ public class OrderController {
     public SaResult getMismatchFakeOrders(Order.GetPageDTO dto) {
         return SaResult.ok("success").setData(new JSONObject().fluentPut("mismatchFakeOrders", orderService.getMismatchFakeOrders(dto)));
     }
-
-    @ApiOperation(value = "获取利润报表", notes = "根据日期",
-            httpMethod = "POST")
-    @PostMapping("/getDailyReport")
-    public SaResult getDailyReport(Order.GetDailyReportDTO dto) {
-        System.out.println("Get DailyReport TEST");
-        var dailyReport = orderService.getDailyReport(dto.getDate());
-        var dayFormat = new SimpleDateFormat("yyyy-MM-dd");
-        return SaResult.ok("success").setData(new JSONObject().fluentPut(dayFormat.format(dto.getDate()), dailyReport));
-    }
-
 }

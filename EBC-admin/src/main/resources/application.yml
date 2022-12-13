@@ -3,7 +3,8 @@ server:
     uri-encoding: UTF-8
     max-threads: 1000
     min-spare-threads: 30
-  port: 8087
+#  port: 8087
+  port: 8888
   servlet:
     context-path: /pofa
     session:
@@ -13,7 +14,7 @@ server:
 swagger:
   enable: true
   application-name: ${spring.application.name}
-  application-version: 1.0
+  application-version: 1.1
   application-description: springfox swagger
   try-host: http://localhost:${server.port}
 

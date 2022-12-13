@@ -1,4 +1,4 @@
-package com.pofa.ebcadmin.order.entity;
+package com.pofa.ebcadmin.profitReport.entity;
 
 
 import lombok.Data;
@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 @Data
 @Accessors(chain = true)
-public class DailyReportInfo {
+public class ProfitReportInfo {
     private Long productId;
 
     private String shopName;
