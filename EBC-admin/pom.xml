@@ -10,7 +10,7 @@
     <artifactId>EBC-admin</artifactId>
     <name>EBC-admin</name>
     <description>EBC-admin</description>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 
     <packaging>jar</packaging>
 
@@ -23,7 +23,7 @@
         <dependency>
             <groupId>com.pofa</groupId>
             <artifactId>EBC-common</artifactId>
-            <version>1.0.1</version>
+            <version>1.0.2</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
