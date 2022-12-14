@@ -1,6 +1,7 @@
 package com.pofa.ebcadmin.profitReport.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.pofa.ebcadmin.profitReport.entity.MismatchedSkusInfo;
 import com.pofa.ebcadmin.profitReport.entity.ProfitReportInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -13,7 +14,7 @@ import java.util.List;
 public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
 
     @Select("""
-            
+                        
             WITH product_ascription AS (
               SELECT
                 a.product,
@@ -252,7 +253,7 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                     pofa.z_refundorders_finished_${month}
                     join product_ascription on z_refundorders_finished_${month}.product_id = product_ascription.product
                   where
-                    refund_end_time =${monthDate}
+                    refund_end_time = ${monthDate}
                     AND refund_status = 1
                 ) as a
               group by
@@ -318,7 +319,79 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
               left join manufacturers on i.product_id = manufacturers.product_id
               left join first_category on pofa.products.first_category = first_category.category_id
               left join product_statistic on i.product_id = product_statistic.product_id;
-            
+                        
             """)
     List<ProfitReportInfo> calculateDailyReport(@Param("month") String month, @Param("monthDate") String monthDate);
+
+
+    @Select("""
+                     WITH product_orders AS (
+                         select
+                             product_id,
+                             product_count,
+                             actual_amount,
+                             sku_name
+                         from
+                             z_orders_${monthDate}
+                         where
+                             product_id = ${productId}
+                     ),
+                     sku_temp AS (
+                         SELECT
+                             a.sku_id,
+                             sku_name,
+                             a.start_time,
+                             create_time
+                         FROM
+                             pofa.skus a
+                             join (
+                                 SELECT
+                                     sku_id,
+                                     max(start_time) as start_time
+                                 FROM
+                                     pofa.skus
+                                 where
+                                     product_id = ${productId} and
+                                     start_time <= ${monthDate}
+                                 group by
+                                     sku_id
+                             ) as b on a.sku_id = b.sku_id
+                             and a.start_time = b.start_time
+                     ),
+                     product_sku AS(
+                         SELECT
+                             sku_name
+                         FROM
+                             sku_temp a
+                             join (
+                                 SELECT
+                                     sku_id,
+                                     max(create_time) as create_time
+                                 FROM
+                                     sku_temp
+                                 group by
+                                     sku_id
+                             ) as b on a.sku_id = b.sku_id
+                             and a.create_time = b.create_time
+                     )
+                     select
+                         a.sku_name,
+                         product_count,
+                         total_amount
+                     from
+                         (
+                             select
+                                 sku_name,
+                                 sum(product_count) as product_count,
+                                 sum(actual_amount) as total_amount
+                             from
+                                 product_orders
+                             group by
+                                 sku_name
+                         ) as a
+                         left join product_sku on a.sku_name = product_sku.sku_name where product_sku.sku_name is NULL;
+            """)
+    List<MismatchedSkusInfo> getMismatchedSkus(@Param("month") String month, @Param("monthDate") String monthDate, @Param("productId") Long productId);
+
+
 }

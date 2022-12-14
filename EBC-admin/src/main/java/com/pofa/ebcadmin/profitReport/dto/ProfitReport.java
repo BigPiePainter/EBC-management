@@ -10,4 +10,10 @@ public class ProfitReport {
         private Date date;
     }
 
+    @Data
+    public static class GetMismatchedSkusDTO {
+        private Date date;
+        private Long productId;
+    }
+
 }
