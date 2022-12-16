@@ -14,4 +14,6 @@ public interface SkuService {
     int deprecateSkuByUids(String uids);
 
     int deleteSkuByUid(Long uid);
+
+    int deleteSkuByUids(String uids);
 }

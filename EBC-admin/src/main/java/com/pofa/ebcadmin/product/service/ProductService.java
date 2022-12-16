@@ -22,6 +22,10 @@ public interface ProductService {
 
     int deprecateProductById(Long id);
 
+    int restoreProductById(Long id);
+
+    int deleteProductById(Long id);
+
     List<MismatchProductInfo> getMismatchProducts();
 
 }

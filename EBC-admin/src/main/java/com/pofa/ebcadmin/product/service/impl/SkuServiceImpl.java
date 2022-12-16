@@ -78,4 +78,11 @@ public class SkuServiceImpl implements SkuService {
     public int deleteSkuByUid(Long uid) {
         return skuDao.delete(new QueryWrapper<SkuInfo>().eq("uid", uid));
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
+    public int deleteSkuByUids(String uids) {
+        var _uids = uids.split(",");
+        return skuDao.delete(new QueryWrapper<SkuInfo>().in("uid", List.of(_uids)));
+    }
 }

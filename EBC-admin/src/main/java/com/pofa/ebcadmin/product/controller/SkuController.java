@@ -75,7 +75,7 @@ public class SkuController {
         return SaResult.ok("success").setData(new JSONObject().fluentPut("skus", skus));
     }
 
-    @ApiOperation(value = "删除SKU", notes = "将SKU挪如回收站", httpMethod = "POST")
+    @ApiOperation(value = "删除SKU", notes = "彻底删除SKU", httpMethod = "POST")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "uids", value = "要删除的SKU的UID，用英文逗号隔开", dataType = "String", paramType = "query", dataTypeClass = String.class, example = "1000,1001", required = false),
     })
@@ -83,7 +83,8 @@ public class SkuController {
     public SaResult deleteSku(Sku.deleteDTO dto) {
         log.info("deleteSku TEST");
 
-        var code = skuService.deprecateSkuByUids(dto.getUids());
+        var code = skuService.deleteSkuByUids(dto.getUids());
+
 
         log.info(String.valueOf(code));
 

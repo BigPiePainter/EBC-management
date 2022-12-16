@@ -68,15 +68,14 @@ public class ProductController {
     }
 
 
-
     @ApiOperation(value = "获取权限内的商品清单", notes = "需要登陆, 无法直接测试", httpMethod = "POST")
     @ApiImplicitParams({
-   })
+    })
     @SaCheckLogin
     @PostMapping("/getByPermission")
     public SaResult getByPermission(Product.GetDTO dto) {
         log.info("GET TEST");
-        if (!StpUtil.isLogin()){
+        if (!StpUtil.isLogin()) {
             return SaResult.ok("success").setData("用户未登录");
         }
         UserInfo user = (UserInfo) StpUtil.getSession().get("user");
@@ -91,7 +90,6 @@ public class ProductController {
         JSONObject data = productService.getProductsByUser(user, dto, false);
 
 
-
         return SaResult.ok("success").setData(data);
     }
 
@@ -102,7 +100,7 @@ public class ProductController {
     @PostMapping("/getDeprecatedByPermission")
     public SaResult getDeprecatedByPermission(Product.GetDTO dto) {
         log.info("GET Deprecated TEST");
-        if (!StpUtil.isLogin()){
+        if (!StpUtil.isLogin()) {
             return SaResult.ok("success").setData("用户未登录");
         }
         UserInfo user = (UserInfo) StpUtil.getSession().get("user");
@@ -115,7 +113,6 @@ public class ProductController {
 //        log.info(String.valueOf(users));
 
         JSONObject data = productService.getProductsByUser(user, dto, true);
-
 
 
         return SaResult.ok("success").setData(data);
@@ -140,7 +137,7 @@ public class ProductController {
 //        return SaResult.ok("success").setData(data);
 //    }
 
-    @ApiOperation(value = "删除商品", notes = "将商品挪入回收站", httpMethod = "POST")
+    @ApiOperation(value = "弃用/下架商品", notes = "将商品挪入回收站", httpMethod = "POST")
     @PostMapping("/delete")
     public SaResult deleteProduct(Product.deleteDTO dto) {
         log.info("deleteProduct TEST");
@@ -157,11 +154,45 @@ public class ProductController {
         return SaResult.ok("success").setData(data).setCode(code);
     }
 
+    @ApiOperation(value = "重新上架商品", notes = "将商品挪入回收站", httpMethod = "POST")
+    @PostMapping("/restore")
+    public SaResult restoreProduct(Product.deleteDTO dto) {
+        log.info("restoreProduct TEST");
+
+        var code = productService.deprecateProductById(dto.getId());
+
+        log.info(String.valueOf(code));
+
+        String data = switch (code) {
+            case 1 -> "商品已移动到回收站";
+            default -> "未知错误";
+        };
+
+        return SaResult.ok("success").setData(data).setCode(code);
+    }
+
+    @ApiOperation(value = "彻底删除商品", notes = "彻底删除商品及其一系列关联条目", httpMethod = "POST")
+    @PostMapping("/absoluteDelete")
+    public SaResult deleteProduct2(Product.deleteDTO dto) {
+        log.info("absoluteDelete TEST");
+
+        var code = productService.deleteProductById(dto.getId());
+
+        log.info(String.valueOf(code));
+
+        String data = switch (code) {
+            case -1 -> "未知错误";
+            default -> code + " 条关联信息已删除";
+        };
+
+        return SaResult.ok("success").setData(data).setCode(code);
+    }
+
     @ApiOperation(value = "获取未匹配商品信息", notes = "认领大厅", httpMethod = "POST")
     @PostMapping("/getMismatchProducts")
     public SaResult getMismatchProducts() {
         log.info("getMismatchProducts TEST");
-        var mismatchProducts =  productService.getMismatchProducts();
+        var mismatchProducts = productService.getMismatchProducts();
         return SaResult.ok("success").setData(new JSONObject().fluentPut("mismatchProducts", mismatchProducts));
     }
 

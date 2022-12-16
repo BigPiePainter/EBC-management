@@ -9,6 +9,8 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.pofa.ebcadmin.department.dao.DepartmentDao;
 import com.pofa.ebcadmin.department.entity.DepartmentInfo;
+import com.pofa.ebcadmin.manufacturer.dao.ManufacturerDao;
+import com.pofa.ebcadmin.manufacturer.entity.ManufacturerInfo;
 import com.pofa.ebcadmin.mybatisplus.CustomTableNameHandler;
 import com.pofa.ebcadmin.order.dao.OrderDao;
 import com.pofa.ebcadmin.order.entity.FakeOrderInfo;
@@ -17,6 +19,7 @@ import com.pofa.ebcadmin.order.entity.RefundOrderInfo;
 import com.pofa.ebcadmin.product.dao.AscriptionDao;
 import com.pofa.ebcadmin.product.dao.MismatchProductDao;
 import com.pofa.ebcadmin.product.dao.ProductDao;
+import com.pofa.ebcadmin.product.dao.SkuDao;
 import com.pofa.ebcadmin.product.dto.Product;
 import com.pofa.ebcadmin.product.entity.AscriptionInfo;
 import com.pofa.ebcadmin.product.entity.MismatchProductInfo;
@@ -62,6 +65,12 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     public ProductDao productDao;
+
+    @Autowired
+    public SkuDao skuDao;
+
+    @Autowired
+    public ManufacturerDao manufacturerDao;
 
     @Autowired
     public AscriptionDao ascriptionDao;
@@ -191,11 +200,14 @@ public class ProductServiceImpl implements ProductService {
         var wrapper = new QueryWrapper<ProductInfo>().eq("deprecated", deprecated);
 
 
+        //固定按照修改时间排序，显示最新的一条（临时）
+        wrapper.orderByDesc("modify_time");
+
         if (user.getUid() != 1L) {
             var departments = departmentDao.selectList(new QueryWrapper<DepartmentInfo>().select("uid", "admin"));
             var teams = teamDao.selectList(new QueryWrapper<TeamInfo>().select("uid", "admin"));
-            System.out.println(departments);
-            System.out.println(teams);
+//            System.out.println(departments);
+//            System.out.println(teams);
 
             var departmentIds = new ArrayList<Long>();
             departments.forEach(departmentInfo -> {
@@ -299,6 +311,24 @@ public class ProductServiceImpl implements ProductService {
     public int deprecateProductById(Long id) {
         return productDao.update(null, new UpdateWrapper<ProductInfo>().in("id", id).set("deprecated", true));
     }
+
+    @Override
+    public int restoreProductById(Long id) {
+        return productDao.update(null, new UpdateWrapper<ProductInfo>().in("id", id).set("deprecated", false));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
+    public int deleteProductById(Long id) {
+        //彻底删除一个商品在EBC中的存在痕迹：商品+SKU+持品人+厂家信息
+        var count = 0;
+        count += productDao.delete(new QueryWrapper<ProductInfo>().eq("id", id));
+        count += ascriptionDao.delete(new QueryWrapper<AscriptionInfo>().eq("product", id));
+        count += skuDao.delete(new QueryWrapper<SkuInfo>().eq("product_id", id));
+        count += manufacturerDao.delete(new QueryWrapper<ManufacturerInfo>().eq("product_id", id));
+        return count;
+    }
+
 
     public void _tryMatchMisMatchProduct(Long productId) {
         mismatchProductDao.delete(new QueryWrapper<MismatchProductInfo>().eq("id", productId));
