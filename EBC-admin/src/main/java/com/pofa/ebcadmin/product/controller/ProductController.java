@@ -154,17 +154,17 @@ public class ProductController {
         return SaResult.ok("success").setData(data).setCode(code);
     }
 
-    @ApiOperation(value = "重新上架商品", notes = "将商品挪入回收站", httpMethod = "POST")
+    @ApiOperation(value = "重新上架商品", notes = "将商品移出回收站", httpMethod = "POST")
     @PostMapping("/restore")
     public SaResult restoreProduct(Product.deleteDTO dto) {
         log.info("restoreProduct TEST");
 
-        var code = productService.deprecateProductById(dto.getId());
+        var code = productService.restoreProductById(dto.getId());
 
         log.info(String.valueOf(code));
 
         String data = switch (code) {
-            case 1 -> "商品已移动到回收站";
+            case 1 -> "商品已移出回收站";
             default -> "未知错误";
         };
 
