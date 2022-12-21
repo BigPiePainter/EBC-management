@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface ProfitReportService {
 
-    List<ProfitReportInfo> getProfitReport(Date date);
+    List<ProfitReportInfo> getProfitReport(Date startDate, Date endDate);
 
 
     List<MismatchedSkusInfo> getMismatchedSkus(Date date, Long productId);

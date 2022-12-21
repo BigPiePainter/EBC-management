@@ -1,6 +1,7 @@
 package com.pofa.ebcadmin.profitReport.entity;
 
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -9,6 +10,10 @@ import java.math.BigDecimal;
 @Data
 @Accessors(chain = true)
 public class ProfitReportInfo {
+
+    @TableField(exist = false)
+    private String id;
+
     private Long productId;
 
     private String shopName;
@@ -37,7 +42,7 @@ public class ProfitReportInfo {
     private BigDecimal totalAmount;
 
     private BigDecimal totalFakeAmount; //补单额
-    private Long fakeOrderCount; //补单数
+    private Long totalFakeCount; //补单数
     private BigDecimal totalBrokerage; //刷单佣金
 
     private BigDecimal totalRefundAmount; //退款金额

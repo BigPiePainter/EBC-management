@@ -291,7 +291,7 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                 ifnull(total_brokerage, 0) as total_brokerage,
                 ifnull(total_price, 0) as total_price,
                 ifnull(total_cost, 0) as total_cost,
-                wrong_count
+                ifnull(wrong_count, 0) as wrong_count
               from
                 (
                   SELECT

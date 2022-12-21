@@ -7,7 +7,8 @@ import java.util.Date;
 public class ProfitReport {
     @Data
     public static class GetDTO {
-        private Date date;
+        private Date startDate;
+        private Date endDate;
     }
 
     @Data

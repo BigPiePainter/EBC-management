@@ -31,11 +31,14 @@ public class ProfitReportController {
     @ApiOperation(value = "获取完整利润报表", notes = "根据日期",
             httpMethod = "POST")
     @PostMapping("/getProfitReport")
-    public SaResult getDailyReport(ProfitReport.GetDTO dto) {
+    public SaResult getProfitReport(ProfitReport.GetDTO dto) {
         System.out.println("Get ProfitReport TEST");
-        var dailyReport = profitReportService.getProfitReport(dto.getDate());
-        var dayFormat = new SimpleDateFormat("yyyy-MM-dd");
-        return SaResult.ok("success").setData(new JSONObject().fluentPut(dayFormat.format(dto.getDate()), dailyReport));
+        if (Math.abs(dto.getStartDate().getTime() - dto.getEndDate().getTime()) / 86400000 > 31){
+            return SaResult.ok("success").setData("选择的日期不能超过一个月").setCode(-1);
+        }
+
+        var profitReport = profitReportService.getProfitReport(dto.getStartDate(), dto.getEndDate());
+        return SaResult.ok("success").setData(new JSONObject().fluentPut("profitReport", profitReport));
     }
 
 
