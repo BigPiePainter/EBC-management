@@ -47,7 +47,7 @@ public class ProfitReportController {
             httpMethod = "POST")
     @PostMapping("/getMismatchedSkus")
     public SaResult getMismatchedSkus(ProfitReport.GetMismatchedSkusDTO dto) {
-        System.out.println("Get MismatchedSkus TEST");
+        log.info("Get MismatchedSkus TEST");
         var mismatchedSkus = profitReportService.getMismatchedSkus(dto.getDate(), dto.getProductId());
         var dayFormat = new SimpleDateFormat("yyyy-MM-dd");
         return SaResult.ok("success").setData(new JSONObject().fluentPut("mismatchedSkus", mismatchedSkus));

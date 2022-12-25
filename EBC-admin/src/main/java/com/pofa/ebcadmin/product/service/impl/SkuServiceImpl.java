@@ -1,6 +1,7 @@
 package com.pofa.ebcadmin.product.service.impl;
 
 import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.pofa.ebcadmin.product.dao.SkuDao;
@@ -27,7 +28,7 @@ public class SkuServiceImpl implements SkuService {
 
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
-    public int addSkus(JSONArray skus) {
+    public JSONObject addSkus(JSONArray skus) {
         log.info(String.valueOf(new Date().getTime()));
 
         var list = new ArrayList<SkuInfo>();
@@ -51,7 +52,9 @@ public class SkuServiceImpl implements SkuService {
         if (!list.isEmpty()) {
             count += skuDao.insertBatchSomeColumn(list);
         }
-        return count;
+
+        var deleteCount = skuDao.deleteUnusedSkuInfos(skus.getJSONArray(0).getLong(0));
+        return new JSONObject().fluentPut("add", count).fluentPut("delete", deleteCount);
     }
 
     @Override

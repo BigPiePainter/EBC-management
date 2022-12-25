@@ -66,7 +66,6 @@ public class ProfitReportImpl implements ProfitReportService {
         System.out.println("--------获取到了结果");
 
 
-        start = new Date();
         var profitReport = new HashMap<String, ProfitReportInfo>();
         profitReports.forEach(r -> r.forEach(item -> {
             var id = item.getDepartment() + "," + item.getTeam() + "," + item.getOwner() + "," + item.getProductId();
@@ -90,7 +89,6 @@ public class ProfitReportImpl implements ProfitReportService {
 
         }));
         log.info(String.valueOf(new Date().getTime() - start.getTime()));
-        System.out.println("--------整合时间");
 
 
         return profitReport.values().stream().toList();
