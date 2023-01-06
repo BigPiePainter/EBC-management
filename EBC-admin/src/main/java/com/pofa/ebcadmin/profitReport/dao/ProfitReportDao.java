@@ -149,51 +149,32 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                 GROUP BY
                   product_id
               ),
-              sku_temp AS (
+              product_sku AS (
                 SELECT
-                  a.sku_id,
-                  sku_name,
-                  sku_price,
-                  sku_cost,
-                  a.product_id,
-                  a.start_time,
-                  create_time
-                FROM
-                  pofa.skus a
-                  join (
+                  *
+                from
+                  (
                     SELECT
+                      product_id,
                       sku_id,
-                      max(start_time) as start_time
+                      sku_name,
+                      sku_price,
+                      sku_cost,
+                      start_time,
+                      create_time,
+                      DENSE_RANK() OVER (
+                        PARTITION BY product_id,
+                        sku_id
+                        ORDER BY
+                          start_time DESC
+                      ) AS num
                     FROM
-                      pofa.skus
+                      skus
                     where
                       start_time <= ${monthDate}
-                      and deprecated = false
-                    group by
-                      sku_id
-                  ) as b on a.sku_id = b.sku_id
-                  and a.start_time = b.start_time
-              ),
-              product_sku AS(
-                SELECT
-                  a.sku_id,
-                  a.product_id,
-                  sku_price,
-                  sku_cost,
-                  sku_name,
-                  a.start_time
-                FROM
-                  sku_temp a
-                  join (
-                    SELECT
-                      sku_id,
-                      max(create_time) as create_time
-                    FROM
-                      sku_temp
-                    group by
-                      sku_id
-                  ) as b on a.sku_id = b.sku_id
-                  and a.create_time = b.create_time
+                  ) a
+                where
+                  num = 1
               ),
               product_statistic AS (
                 select
