@@ -43,13 +43,14 @@ public class SkuServiceImpl implements SkuService {
                     .setSkuCost(sku.getBigDecimal(4))
                     .setStartTime(sku.getDate(5))
             );
-            if ((i + 1) % 3000 == 0) {
-                count += skuDao.insertBatchSomeColumn(list);
-                list.clear();
-            }
         }
 
         if (!list.isEmpty()) {
+            //商品ID去重
+            var skuWithinOtherProduct = skuDao.selectList(new QueryWrapper<SkuInfo>().in("sku_id", list.stream().map(SkuInfo::getSkuId).toList()).ne("product_id", skus.getJSONArray(0).getLong(0)));
+            if (skuWithinOtherProduct.size() > 0){
+                return new JSONObject().fluentPut("error", "导入失败，相同的SKUID不能出现在两个商品中");
+            }
             count += skuDao.insertBatchSomeColumn(list);
         }
 

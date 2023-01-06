@@ -33,6 +33,12 @@ public class ProductInfo {
 
     private Date endTime;
 
+    @TableField(exist = false)
+    private Long skus;
+
+    @TableField(exist = false)
+    private Long manufacturers;
+
     @TableField(fill = FieldFill.INSERT)
     private String note;
 

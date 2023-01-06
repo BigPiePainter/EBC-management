@@ -18,6 +18,7 @@ import com.pofa.ebcadmin.product.entity.MismatchProductInfo;
 import com.pofa.ebcadmin.product.entity.ProductInfo;
 import com.pofa.ebcadmin.order.orderUtils.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -91,6 +93,7 @@ public class OrderServiceImpl implements OrderService {
 
         state.setCode(1); //processing
         state.setState("文件打开中");
+        UploadWebSocket.sendStateToAll(state, true);
 
         try (Workbook workbook = WorkbookFactory.create(inputStream)) {
             log.info("打开成功");
@@ -100,8 +103,14 @@ public class OrderServiceImpl implements OrderService {
             //订单信息
             if (isValidFileType(sheet, orderHeader)) {
                 if (orderPreProcess(sheet, state)) {
+                    //调试，生成excel
+//                    try (var outputStream = FileUtils.openOutputStream(new File("test.xlsx"));) {
+//                        workbook.write(outputStream);
+//                        log.info("写入成功");
+//                    }
                     _orderFileProcess(sheet, state);
                 }
+
                 return;
             }
             //退单信息
@@ -134,9 +143,10 @@ public class OrderServiceImpl implements OrderService {
     public void _orderFileProcess(Sheet sheet, FileState state) {
         state.setCode(1); //processing
         state.setState("订单 解析中");
+        UploadWebSocket.sendStateToAll(state, true);
         log.info("订单 解析中");
-        var realRowNum = state.getRealRowNum();
-        log.info(String.valueOf(realRowNum));
+        var lastRowNum = sheet.getLastRowNum();
+        log.info(String.valueOf(lastRowNum));
 
         var orderInfos = new HashMap<String, ArrayList<OrderInfo>>();
         var mismatchProductInfos = new ArrayList<MismatchProductInfo>();
@@ -144,9 +154,11 @@ public class OrderServiceImpl implements OrderService {
         int processingRow = 0;
         try {
             Row row;
-            for (processingRow = 1; processingRow <= realRowNum; processingRow++) {
+            for (processingRow = 1; processingRow <= lastRowNum; processingRow++) {
                 row = sheet.getRow(processingRow);
-
+                if (isBlankRow(row, 21)) {
+                    continue;
+                }
 
                 var id = Long.valueOf(row.getCell(0).getStringCellValue());
                 var orderId = Long.valueOf(row.getCell(1).getStringCellValue());
@@ -179,7 +191,7 @@ public class OrderServiceImpl implements OrderService {
                     case "商家仓" -> 2;
                     default -> 0;
                 };
-                var refundAmount = Double.parseDouble(row.getCell(25).getStringCellValue());
+                var refundAmount = Double.parseDouble(row.getCell(25).getStringCellValue().isBlank() ? "0" : row.getCell(25).getStringCellValue());
                 var skuName = row.getCell(26).getStringCellValue();
                 var sellerCode = isBlankCell(row.getCell(27)) ? null : row.getCell(27).getStringCellValue();
                 var productId = Long.valueOf(row.getCell(28).getStringCellValue());
@@ -229,11 +241,10 @@ public class OrderServiceImpl implements OrderService {
         }
 
         log.info("完事了");
-
         state.setState("订单 插入数据库");
         //插入 数据库
         try {
-            _orderIntoDatabase(orderInfos, mismatchProductInfos);
+            _orderIntoDatabase(orderInfos, mismatchProductInfos, state);
         } catch (Exception e) {
             e.printStackTrace();
             state.setCode(-1);
@@ -242,11 +253,12 @@ public class OrderServiceImpl implements OrderService {
         }
 
         state.setCode(2); //成功
-        state.setState(String.format("订单 完事了"));
+        state.setState(String.format("订单 完事了 插入%s行 忽略%s行", state.getRightRowNum(), state.getWrongRowNum()));
+        UploadWebSocket.sendStateToAll(state, true);
     }
 
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
-    public void _orderIntoDatabase(HashMap<String, ArrayList<OrderInfo>> orderInfos, ArrayList<MismatchProductInfo> mismatchProductInfos) throws ParseException {
+    public void _orderIntoDatabase(HashMap<String, ArrayList<OrderInfo>> orderInfos, ArrayList<MismatchProductInfo> mismatchProductInfos, FileState state) throws ParseException {
         log.info("1");
         for (var entry : orderInfos.entrySet()) {
             var key = entry.getKey();
@@ -254,13 +266,15 @@ public class OrderServiceImpl implements OrderService {
             var size = value.size();
             for (int i = 0; i < size; i += 10000) {
                 CustomTableNameHandler.customTableName.set("z_orders_" + key);
+                state.setState("订单 插入数据库 " + key);
+                UploadWebSocket.sendStateToAll(state, true);
                 orderDao.replaceBatchSomeColumn(value.subList(i, Math.min(i + 10000, size)));
             }
         }
 
         var fakeOrderRequested = new HashMap<String, ArrayList<FakeOrderInfo>>();
 
-        //处理退单
+        //处理fakeOrder
         CustomTableNameHandler.customTableName.set("fakeorders");
         var fakeOrderInfos = fakeOrderDao.selectList(null);
         fakeOrderInfos.forEach(fakeOrder -> {
@@ -578,7 +592,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
-    public JSONObject getMismatchFakeOrders(Order.GetPageDTO dto){
+    public JSONObject getMismatchFakeOrders(Order.GetPageDTO dto) {
         var page = new Page<FakeOrderInfo>(dto.getPage(), dto.getItemsPerPage());
         CustomTableNameHandler.customTableName.set("fakeorders");
         fakeOrderDao.selectPage(page, null);
@@ -587,13 +601,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
-    public JSONObject getMismatchRefundOrders(Order.GetPageDTO dto){
+    public JSONObject getMismatchRefundOrders(Order.GetPageDTO dto) {
         var page = new Page<RefundOrderInfo>(dto.getPage(), dto.getItemsPerPage());
         CustomTableNameHandler.customTableName.set("refundorders");
         refundOrderDao.selectPage(page, null);
         return new JSONObject().fluentPut("refundorders", page.getRecords()).fluentPut("total", page.getTotal());
     }
-
 
 
     public void _tryMatchMisMatchAllProducts() {

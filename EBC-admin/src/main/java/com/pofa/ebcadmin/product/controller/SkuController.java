@@ -46,11 +46,15 @@ public class SkuController {
         log.info(String.valueOf(json));
 
         log.info("addSkus TEST");
+
         var res = skuService.addSkus(json.getJSONArray("data"));
         log.info(String.valueOf(res));
 
-
-        return SaResult.ok("success").setData("成功新增" + res.getLong("add") + "条，删除"+res.getLong("delete") + "条").setCode(1);
+        if (res.containsKey("error")) {
+            return SaResult.ok("success").setData(res.getString("error")).setCode(1);
+        } else {
+            return SaResult.ok("success").setData("成功新增" + res.getLong("add") + "条，删除" + res.getLong("delete") + "条").setCode(1);
+        }
     }
 
     @ApiOperation(value = "读取SKU", notes = "根据商品ID", httpMethod = "POST")

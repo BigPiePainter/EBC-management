@@ -1,13 +1,18 @@
 package com.pofa.ebcadmin.order.orderUtils;
 
+import com.pofa.ebcadmin.globalSocket.utils.GlobalWebSocket;
+import com.pofa.ebcadmin.utils.webSocket.WebSocketHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
+import java.util.List;
 
 @Slf4j
 public class OrderFileUtils {
@@ -38,6 +43,7 @@ public class OrderFileUtils {
     }
 
     public static boolean isBlankRow(Row row, int limit) {
+        if (null == row) return true;
         for (int i = 0; i <= limit; i++) {
             if (!isBlankCell(row.getCell(i))) {
                 return false;
@@ -49,6 +55,8 @@ public class OrderFileUtils {
     public static boolean orderPreProcess(Sheet sheet, FileState state) {
 
         state.setState("订单 格式校验中");
+        UploadWebSocket.sendStateToAll(state, true
+        );
 
         var today = Calendar.getInstance();
         var earliestDay = Calendar.getInstance();
@@ -56,59 +64,74 @@ public class OrderFileUtils {
 
         var lastRowNum = sheet.getLastRowNum();
         //判断表格信息合法性
-        Row row;
 
         var notNullCellCols = new int[]{0, 1, 4, 5, 6, 7, 8, 9, 10, 14, 15, 16, 17, 20, 21, 22, 23, 24, 25, 26, 28};
         var notNullCellColsValidCellType = new CellType[]{CellType.STRING, CellType.STRING, CellType.STRING, CellType.STRING, CellType.STRING, CellType.STRING, CellType.STRING, CellType.STRING, CellType.STRING, CellType.STRING, CellType.STRING, CellType.STRING, CellType.STRING, CellType.STRING, CellType.STRING, CellType.STRING, CellType.STRING, CellType.STRING, CellType.STRING, CellType.STRING, CellType.STRING};
 
-        var touchBottom = false;
-        var realRowNum = 0;
+        var rightRowNum = 0;
+        var wrongRowNum = 0;
+
+        Row row;
         for (var rowIndex = 1; rowIndex <= lastRowNum; rowIndex++) {
+            state.setState(String.format("订单 格式校验中 正确: %s行 忽略: %s行", rightRowNum, wrongRowNum));
+            UploadWebSocket.sendStateToAll(state);
+
             row = sheet.getRow(rowIndex);
-            if (touchBottom) {
-                for (int j = 0; j <= 21; j++) {
-                    if (!isBlankCell(row.getCell(j))) {
-                        state.setCode(-1);
-                        state.setState((rowIndex + 1) + "行 不应该有东西才对");
-                        return false;
-                    }
-                }
-            } else {
-                if (isBlankRow(row, 21)) {
-                    log.info("TouchButtom");
-                    touchBottom = true;
-                    continue;
-                }
-                realRowNum = rowIndex;
-
-                for (int i = 0; i < notNullCellCols.length; i++) {
-                    if (isBlankCell(row.getCell(notNullCellCols[i]))) {
-                        state.setCode(-1);
-                        state.setState("第" + (rowIndex + 1) + "行有数据丢失");
-                        return false;
-                    }
-                    if (row.getCell(notNullCellCols[i]).getCellType() != notNullCellColsValidCellType[i]) {
-                        log.info(String.valueOf(notNullCellCols[i]));
-                        log.info(String.valueOf(row.getCell(notNullCellCols[i]).getCellType()));
-                        log.info(String.valueOf(notNullCellColsValidCellType[i]));
-                        state.setCode(-1);
-                        state.setState("第" + (rowIndex + 1) + "行有数据格式错误");
-                        return false;
-                    }
-                }
-
-
+            if (isBlankRow(row, 21)) {
+                //log.info("BlankRow");
+                wrongRowNum++;
+                continue;
             }
 
+            for (int i = 0; i < notNullCellCols.length; i++) {
+                if (isBlankCell(row.getCell(notNullCellCols[i]))) {
+                    if (notNullCellCols[i] == 25) { //退款金额 为空时，按0处理
+                        row.getCell(notNullCellCols[i]).setCellValue("0.0");
+                    } else if (notNullCellCols[i] == 4) { //支付单号 为空时，删除整行
+                        sheet.removeRow(row);
+                        //log.info("删除了一整行" + (rowIndex + 1));
+                        wrongRowNum++;
+                        break;
+                    } else if (notNullCellCols[i] == 5) { //买家应付货款 为空时，删除整行
+                        sheet.removeRow(row);
+                        //log.info("删除了一整行" + (rowIndex + 1));
+                        wrongRowNum++;
+                        break;
+                    } else {
+                        state.setCode(-1);
+                        state.setState("第" + (rowIndex + 1) + "行" + (notNullCellCols[i] + 1) + "列有数据丢失");
+                        return false;
+                    }
+                }
+                if (row.getCell(notNullCellCols[i]).getCellType() != notNullCellColsValidCellType[i]) {
+                    log.info(String.valueOf(notNullCellCols[i]));
+                    log.info(String.valueOf(row.getCell(notNullCellCols[i]).getCellType()));
+                    log.info(String.valueOf(notNullCellColsValidCellType[i]));
+                    state.setCode(-1);
+                    state.setState("第" + (rowIndex + 1) + "行有数据格式错误");
+                    return false;
+                }
+            }
 
+            rightRowNum++;
         }
+
 
         //检查重复
-        log.info(String.valueOf(realRowNum));
+        var realRowNum = 0;
         var set = new HashSet<String>();
-        for (var i = 1; i <= realRowNum; i++) {
-            set.add(sheet.getRow(i).getCell(0).getStringCellValue());
+        for (var rowIndex = 1; rowIndex <= lastRowNum; rowIndex++) {
+            row = sheet.getRow(rowIndex);
+            if (isBlankRow(row, 21)) {
+                continue;
+            }
+
+            set.add(row.getCell(0).getStringCellValue());
+            realRowNum++;
         }
+
+        log.info(String.valueOf(realRowNum));
+
         log.info("去重检查完毕");
         if (set.size() != realRowNum) {
             state.setCode(-1);
@@ -116,7 +139,11 @@ public class OrderFileUtils {
             return false;
         }
 
+        state.setRightRowNum(rightRowNum);
+        state.setWrongRowNum(wrongRowNum);
         state.setRealRowNum(realRowNum);
+
+
         return true;
 
     }
@@ -159,7 +186,7 @@ public class OrderFileUtils {
                 for (int i = 0; i < notNullCellCols.length; i++) {
                     if (isBlankCell(row.getCell(notNullCellCols[i]))) {
                         state.setCode(-1);
-                        state.setState("第" + (rowIndex + 1) + "行有数据丢失");
+                        state.setState("第" + (rowIndex + 1) + "行" + (notNullCellCols[i] + 1) + "列有数据丢失");
                         return false;
                     }
                     if (row.getCell(notNullCellCols[i]).getCellType() != notNullCellColsValidCellType[i]) {

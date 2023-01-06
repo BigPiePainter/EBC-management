@@ -20,4 +20,8 @@ public class FileStateManager {
     public static HashMap<String, FileState> getStates() {
         return states;
     }
+
+    public static FileState getState(String name) {
+        return states.get(name);
+    }
 }

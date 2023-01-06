@@ -200,9 +200,6 @@ public class ProductServiceImpl implements ProductService {
         var wrapper = new QueryWrapper<ProductInfo>().eq("deprecated", deprecated);
 
 
-        //固定按照修改时间排序，显示最新的一条（临时）
-        wrapper.orderByDesc("modify_time");
-
         if (user.getUid() != 1L) {
             var departments = departmentDao.selectList(new QueryWrapper<DepartmentInfo>().select("uid", "admin"));
             var teams = teamDao.selectList(new QueryWrapper<TeamInfo>().select("uid", "admin"));
@@ -238,6 +235,7 @@ public class ProductServiceImpl implements ProductService {
 
         }
 
+        var wrapperBase = wrapper.clone();
 
         //类别删选
         for (Map.Entry<String, Object> entry : select.entrySet()) {
@@ -259,9 +257,37 @@ public class ProductServiceImpl implements ProductService {
             }
         }
 
+
+        var category = new JSONObject();
+
+        var targets = new ArrayList<String>();
+        targets.add("department");
+        targets.add("team");
+        targets.add("owner");
+        targets.add("shop_name");
+        targets.add("first_category");
+
+        List<ProductInfo> results;
+        for (var col : targets) {
+            var array = new JSONArray();
+            var _wrapper = wrapperBase.clone();
+            results = productDao.selectList(_wrapper.select(col).groupBy(col));
+            results.forEach(item -> array.add(switch (col) {
+                case "department" -> item.getDepartment();
+                case "team" -> item.getTeam();
+                case "owner" -> item.getOwner();
+                case "shop_name" -> item.getShopName();
+                case "first_category" -> item.getFirstCategory();
+                default -> "ERROR";
+            }));
+            category.put(Convert.underScoreToCamel(col), array);
+        }
+
+        log.info(String.valueOf(category));
+
         var page = new Page<ProductInfo>(dto.getPage(), dto.getItemsPerPage());
-        productDao.selectPage(page, wrapper);
-        return new JSONObject().fluentPut("products", page.getRecords()).fluentPut("total", page.getTotal());
+        var productInfoList = productDao.selectProductsWithSkuCountWithPage(page, wrapper.orderByDesc("modify_time"));
+        return new JSONObject().fluentPut("products", productInfoList).fluentPut("total", page.getTotal()).fluentPut("category", category);
     }
 
 //    @Override

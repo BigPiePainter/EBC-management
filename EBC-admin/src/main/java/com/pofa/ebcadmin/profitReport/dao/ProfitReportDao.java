@@ -242,9 +242,10 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
               ),
               finished_refund_order_amount AS (
                 SELECT
-                  product_id as refund_product_id,
-                  sum(refund_amount) as total_refund_amount,
-                  sum(if (express_status = false, refund_amount, 0)) as total_refund_with_no_ship_amount
+                    product_id as refund_product_id,
+                    sum(refund_amount) as total_refund_amount,
+                    sum(if (express_status = false, refund_amount, 0)) as total_refund_with_no_ship_amount,
+                    count(express_status = false or null) as refund_with_no_ship_count
                 FROM
                   (
                     SELECT
@@ -286,6 +287,7 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                 ifnull(total_amount, 0) as total_amount,
                 ifnull(total_refund_amount, 0) as total_refund_amount,
                 ifnull(total_refund_with_no_ship_amount, 0) as total_refund_with_no_ship_amount,
+                ifnull(refund_with_no_ship_count, 0) as refund_with_no_ship_count,
                 ifnull(total_fake_count, 0) as total_fake_count,
                 ifnull(total_fake_amount, 0) as total_fake_amount,
                 ifnull(total_brokerage, 0) as total_brokerage,
@@ -299,7 +301,8 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                     order_count,
                     product_count,
                     total_refund_amount,
-                    total_refund_with_no_ship_amount
+                    total_refund_with_no_ship_amount,
+                    refund_with_no_ship_count
                   from
                     (
                       SELECT

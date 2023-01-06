@@ -16,4 +16,10 @@ public class FileState {
 
 
     private int realRowNum;
+
+    private int rightRowNum;
+
+    private int wrongRowNum;
+
+    private long socketSendTime = 0;
 }
