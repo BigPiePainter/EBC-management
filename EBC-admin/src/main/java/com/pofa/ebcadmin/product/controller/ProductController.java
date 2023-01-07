@@ -196,6 +196,24 @@ public class ProductController {
         return SaResult.ok("success").setData(new JSONObject().fluentPut("mismatchProducts", mismatchProducts));
     }
 
+
+    @ApiOperation(value = "商品同步", notes = "将一个商品的SKU和厂家信息完全复制到另一个商品中", httpMethod = "POST")
+    @PostMapping("/productSynchronization")
+    public SaResult productSynchronization(Product.SynchronizationDTO dto) {
+        log.info("Synchronization TEST");
+
+        var code = productService.productSynchronization(dto.getProductIdA(), dto.getProductIdB());
+
+        log.info(String.valueOf(code));
+
+        String data = switch (code) {
+            case 1 -> "商品同步成功";
+            default -> "未知错误";
+        };
+
+        return SaResult.ok("success").setData(data).setCode(code);
+    }
+
 //    @ApiOperation(value = "删除商品", notes = "需要登陆", httpMethod = "POST")
 //    @ApiImplicitParams({
 //    })

@@ -21,6 +21,7 @@ import com.pofa.ebcadmin.product.dao.MismatchProductDao;
 import com.pofa.ebcadmin.product.dao.ProductDao;
 import com.pofa.ebcadmin.product.dao.SkuDao;
 import com.pofa.ebcadmin.product.dto.Product;
+import com.pofa.ebcadmin.product.dto.Sku;
 import com.pofa.ebcadmin.product.entity.AscriptionInfo;
 import com.pofa.ebcadmin.product.entity.MismatchProductInfo;
 import com.pofa.ebcadmin.product.entity.ProductInfo;
@@ -393,6 +394,29 @@ public class ProductServiceImpl implements ProductService {
         this.mismatchProductsRefreshTimestamp = System.currentTimeMillis();
 
         return this.mismatchProducts;
+    }
+
+    @Override
+    public int productSynchronization(Long productIdA, Long productIdB) {
+        var productASkus = skuDao.selectList(new QueryWrapper<SkuInfo>().eq("product_id", productIdA));
+        skuDao.delete(new QueryWrapper<SkuInfo>().eq("product_id", productIdB));
+        productASkus.forEach(sku -> {
+            sku.setProductId(productIdB);
+            sku.setUid(null);
+        });
+        skuDao.insertBatchSomeColumn(productASkus);
+
+
+        var productAManufactures = manufacturerDao.selectList(new QueryWrapper<ManufacturerInfo>().eq("product_id", productIdA));
+        manufacturerDao.delete(new QueryWrapper<ManufacturerInfo>().eq("product_id", productIdB));
+        productAManufactures.forEach(sku -> {
+            sku.setProductId(productIdB);
+            sku.setUid(null);
+        });
+        manufacturerDao.insertBatchSomeColumn(productAManufactures);
+
+
+        return 0;
     }
 
 }

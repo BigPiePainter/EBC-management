@@ -53,5 +53,11 @@ public class Product {
     public static class deleteDTO {
         private Long id;
     }
+
+    @Data
+    public static class SynchronizationDTO {
+        private Long productIdA;
+        private Long productIdB;
+    }
 }
 
