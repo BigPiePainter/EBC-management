@@ -633,6 +633,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
     public int deleteFakeOrderByIds(String ids) {
         var _ids = ids.split(",");
+        CustomTableNameHandler.customTableName.set("fakeorders");
         return fakeOrderDao.delete(new QueryWrapper<FakeOrderInfo>().in("id", List.of(_ids)));
     }
 

@@ -29,6 +29,6 @@ public interface ProductService {
     List<MismatchProductInfo> getMismatchProducts();
 
 
-    int productSynchronization(Long productIdA, Long productIdB);
+    JSONObject productSynchronization(Long productIdA, Long productIdB);
 
 }

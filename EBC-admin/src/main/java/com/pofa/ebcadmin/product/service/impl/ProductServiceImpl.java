@@ -397,27 +397,38 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public int productSynchronization(Long productIdA, Long productIdB) {
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
+    public JSONObject productSynchronization(Long productIdA, Long productIdB) {
         var productASkus = skuDao.selectList(new QueryWrapper<SkuInfo>().eq("product_id", productIdA));
-        var skuDelete = skuDao.delete(new QueryWrapper<SkuInfo>().eq("product_id", productIdB));
+        var skuDelete = 0;
+        var skuAdd = 0;
+        skuDelete = skuDao.delete(new QueryWrapper<SkuInfo>().eq("product_id", productIdB));
         log.info("删除了" + skuDelete + "条SKU");
-        productASkus.forEach(sku -> {
-            sku.setProductId(productIdB);
-            sku.setUid(null);
-        });
-        skuDao.insertBatchSomeColumn(productASkus);
+        if (productASkus.size() > 0) {
+            log.info(productASkus.toString());
+            productASkus.forEach(sku -> {
+                sku.setProductId(productIdB);
+                sku.setUid(null);
+            });
+            skuAdd = skuDao.insertBatchSomeColumn(productASkus);
+        }
+
 
         var productAManufactures = manufacturerDao.selectList(new QueryWrapper<ManufacturerInfo>().eq("product_id", productIdA));
-        var manufactureDelete = manufacturerDao.delete(new QueryWrapper<ManufacturerInfo>().eq("product_id", productIdB));
+        var manufactureDelete = 0;
+        var manufactureAdd = 0;
+        manufactureDelete = manufacturerDao.delete(new QueryWrapper<ManufacturerInfo>().eq("product_id", productIdB));
         log.info("删除了" + manufactureDelete + "条工厂");
-        productAManufactures.forEach(sku -> {
-            sku.setProductId(productIdB);
-            sku.setUid(null);
-        });
-        manufacturerDao.insertBatchSomeColumn(productAManufactures);
+        if (productAManufactures.size() > 0) {
+            log.info(productAManufactures.toString());
+            productAManufactures.forEach(sku -> {
+                sku.setProductId(productIdB);
+                sku.setUid(null);
+            });
+            manufactureAdd = manufacturerDao.insertBatchSomeColumn(productAManufactures);
+        }
 
-
-        return 0;
+        return new JSONObject().fluentPut("skuDelete", skuDelete).fluentPut("skuAdd", skuAdd).fluentPut("manufactureDelete", manufactureDelete).fluentPut("manufactureAdd", manufactureAdd);
     }
 
 }

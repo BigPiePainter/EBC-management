@@ -202,16 +202,12 @@ public class ProductController {
     public SaResult productSynchronization(Product.SynchronizationDTO dto) {
         log.info("Synchronization TEST");
 
-        var code = productService.productSynchronization(dto.getProductIdA(), dto.getProductIdB());
+        var res = productService.productSynchronization(dto.getProductIdA(), dto.getProductIdB());
 
-        log.info(String.valueOf(code));
+        log.info(String.valueOf(res));
 
-        String data = switch (code) {
-            case 1 -> "商品同步成功";
-            default -> "未知错误";
-        };
 
-        return SaResult.ok("success").setData(data).setCode(code);
+        return SaResult.ok("success").setData(res).setCode(1);
     }
 
 //    @ApiOperation(value = "删除商品", notes = "需要登陆", httpMethod = "POST")
