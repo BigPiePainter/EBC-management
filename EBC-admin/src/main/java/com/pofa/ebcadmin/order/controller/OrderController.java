@@ -76,15 +76,15 @@ public class OrderController {
         return SaResult.ok("success").setData(new JSONObject().fluentPut("mismatchFakeOrders", orderService.getMismatchFakeOrders(dto)));
     }
 
-    @ApiOperation(value = "删除团队刷单", notes = "彻底删除团队刷单", httpMethod = "POST")
+    @ApiOperation(value = "删除未匹配团队刷单", notes = "彻底删除未匹配团队刷单", httpMethod = "POST")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "uids", value = "要删除的团队刷单的UID，用英文逗号隔开", dataType = "String", paramType = "query", dataTypeClass = String.class, example = "1000,1001", required = false),
+            @ApiImplicitParam(name = "ids", value = "要删除的未匹配团队刷单的ID，用英文逗号隔开", dataType = "String", paramType = "query", dataTypeClass = String.class, example = "1000,1001", required = false),
     })
     @PostMapping("/delete")
     public SaResult deleteFakeOrders(Order.DeleteFakeOrderDTO dto) {
         log.info("deleteFakeOrders TEST");
 
-        var code = orderService.deleteFakeOrderByUids(dto.getUids());
+        var code = orderService.deleteFakeOrderByIds(dto.getIds());
 
         log.info(String.valueOf(code));
 
