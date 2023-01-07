@@ -631,9 +631,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
-    public int deleteFakeOrderByUids(String uids) {
-        var _uids = uids.split(",");
-        return fakeOrderDao.delete(new QueryWrapper<FakeOrderInfo>().in("uid", List.of(_uids)));
+    public int deleteFakeOrderByIds(String ids) {
+        var _ids = ids.split(",");
+        return fakeOrderDao.delete(new QueryWrapper<FakeOrderInfo>().in("id", List.of(_ids)));
     }
 
 

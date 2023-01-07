@@ -18,7 +18,7 @@ public class Order {
 
     @Data
     public static class DeleteFakeOrderDTO {
-        private String uids;
+        private String ids;
     }
 
     @Data
