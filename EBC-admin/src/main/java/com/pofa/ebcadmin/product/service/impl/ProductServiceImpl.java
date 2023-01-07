@@ -399,16 +399,17 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public int productSynchronization(Long productIdA, Long productIdB) {
         var productASkus = skuDao.selectList(new QueryWrapper<SkuInfo>().eq("product_id", productIdA));
-        skuDao.delete(new QueryWrapper<SkuInfo>().eq("product_id", productIdB));
+        var skuDelete = skuDao.delete(new QueryWrapper<SkuInfo>().eq("product_id", productIdB));
+        log.info("删除了" + skuDelete + "条SKU");
         productASkus.forEach(sku -> {
             sku.setProductId(productIdB);
             sku.setUid(null);
         });
         skuDao.insertBatchSomeColumn(productASkus);
 
-
         var productAManufactures = manufacturerDao.selectList(new QueryWrapper<ManufacturerInfo>().eq("product_id", productIdA));
-        manufacturerDao.delete(new QueryWrapper<ManufacturerInfo>().eq("product_id", productIdB));
+        var manufactureDelete = manufacturerDao.delete(new QueryWrapper<ManufacturerInfo>().eq("product_id", productIdB));
+        log.info("删除了" + manufactureDelete + "条工厂");
         productAManufactures.forEach(sku -> {
             sku.setProductId(productIdB);
             sku.setUid(null);
