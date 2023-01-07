@@ -15,5 +15,6 @@ public interface OrderService {
 
     JSONObject getMismatchFakeOrders(Order.GetPageDTO dto);
 
+    int deleteFakeOrderByUids(String uids);
 
 }

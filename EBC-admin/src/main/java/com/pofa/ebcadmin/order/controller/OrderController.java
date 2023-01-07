@@ -6,7 +6,10 @@ import com.alibaba.fastjson2.JSONObject;
 import com.pofa.ebcadmin.order.dto.Order;
 import com.pofa.ebcadmin.order.orderUtils.FileStateManager;
 import com.pofa.ebcadmin.order.service.OrderService;
+import com.pofa.ebcadmin.product.dto.Sku;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,4 +75,30 @@ public class OrderController {
     public SaResult getMismatchFakeOrders(Order.GetPageDTO dto) {
         return SaResult.ok("success").setData(new JSONObject().fluentPut("mismatchFakeOrders", orderService.getMismatchFakeOrders(dto)));
     }
+
+    @ApiOperation(value = "删除团队刷单", notes = "彻底删除团队刷单", httpMethod = "POST")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "uids", value = "要删除的团队刷单的UID，用英文逗号隔开", dataType = "String", paramType = "query", dataTypeClass = String.class, example = "1000,1001", required = false),
+    })
+    @PostMapping("/delete")
+    public SaResult deleteFakeOrders(Order.DeleteFakeOrderDTO dto) {
+        log.info("deleteFakeOrders TEST");
+
+        var code = orderService.deleteFakeOrderByUids(dto.getUids());
+
+        log.info(String.valueOf(code));
+
+        String data;
+        if (code > 0) {
+            data = "成功删除" + code + "条团队刷单";
+        } else {
+            data = switch (code) {
+                default -> "未知错误";
+            };
+        }
+
+
+        return SaResult.ok("success").setData(data).setCode(code);
+    }
+
 }

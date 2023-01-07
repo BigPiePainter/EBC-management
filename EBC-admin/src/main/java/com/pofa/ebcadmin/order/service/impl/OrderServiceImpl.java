@@ -17,6 +17,7 @@ import com.pofa.ebcadmin.product.dao.ProductDao;
 import com.pofa.ebcadmin.product.entity.MismatchProductInfo;
 import com.pofa.ebcadmin.product.entity.ProductInfo;
 import com.pofa.ebcadmin.order.orderUtils.*;
+import com.pofa.ebcadmin.product.entity.SkuInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.ss.usermodel.*;
@@ -608,7 +609,6 @@ public class OrderServiceImpl implements OrderService {
         return new JSONObject().fluentPut("refundorders", page.getRecords()).fluentPut("total", page.getTotal());
     }
 
-
     public void _tryMatchMisMatchAllProducts() {
         var mismatchProducts = mismatchProductDao.selectList(new QueryWrapper<MismatchProductInfo>().select("id"));
         var products = productDao.selectList(new QueryWrapper<ProductInfo>().select("id"));
@@ -627,6 +627,13 @@ public class OrderServiceImpl implements OrderService {
         if (!matchedProductIds.isEmpty()) {
             mismatchProductDao.delete(new QueryWrapper<MismatchProductInfo>().in("id", matchedProductIds));
         }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
+    public int deleteFakeOrderByUids(String uids) {
+        var _uids = uids.split(",");
+        return fakeOrderDao.delete(new QueryWrapper<FakeOrderInfo>().in("uid", List.of(_uids)));
     }
 
 
