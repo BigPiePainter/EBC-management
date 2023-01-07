@@ -17,6 +17,11 @@ public class Order {
     }
 
     @Data
+    public static class DeleteFakeOrderDTO {
+        private String uids;
+    }
+
+    @Data
     public static class GetPageDTO {
         private Long page;
         private Long itemsPerPage;
