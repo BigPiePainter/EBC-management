@@ -39,6 +39,7 @@ public class CategoryServiceImpl implements CategoryService {
 
 
     @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
     public List<CategoryInfo> getCategorys(Category.GetDTO dto) {
         return categoryDao.selectList(null);
     }

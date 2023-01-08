@@ -6,10 +6,12 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.pofa.ebcadmin.mybatisplus.CustomTableNameHandler;
 import com.pofa.ebcadmin.order.dao.FakeOrderDao;
 import com.pofa.ebcadmin.order.dao.OrderDao;
+import com.pofa.ebcadmin.order.dao.PersonalFakeOrderDao;
 import com.pofa.ebcadmin.order.dao.RefundOrderDao;
 import com.pofa.ebcadmin.order.dto.Order;
 import com.pofa.ebcadmin.order.entity.FakeOrderInfo;
 import com.pofa.ebcadmin.order.entity.OrderInfo;
+import com.pofa.ebcadmin.order.entity.PersonalFakeOrderInfo;
 import com.pofa.ebcadmin.order.entity.RefundOrderInfo;
 import com.pofa.ebcadmin.order.service.OrderService;
 import com.pofa.ebcadmin.product.dao.MismatchProductDao;
@@ -58,6 +60,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     public FakeOrderDao fakeOrderDao;
+
+    @Autowired
+    public PersonalFakeOrderDao personalFakeOrderDao;
 
     @Autowired
     public FakeOrderInfo fakeOrderInfo;
@@ -597,6 +602,15 @@ public class OrderServiceImpl implements OrderService {
         var page = new Page<FakeOrderInfo>(dto.getPage(), dto.getItemsPerPage());
         CustomTableNameHandler.customTableName.set("fakeorders");
         fakeOrderDao.selectPage(page, null);
+        return new JSONObject().fluentPut("fakeorders", page.getRecords()).fluentPut("total", page.getTotal());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
+    public JSONObject getMismatchPersonalFakeOrders(Order.GetPageDTO dto) {
+        var page = new Page<PersonalFakeOrderInfo>(dto.getPage(), dto.getItemsPerPage());
+        CustomTableNameHandler.customTableName.set("fakeorders_personal");
+        personalFakeOrderDao.selectPage(page, null);
         return new JSONObject().fluentPut("fakeorders", page.getRecords()).fluentPut("total", page.getTotal());
     }
 

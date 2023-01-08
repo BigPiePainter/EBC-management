@@ -62,7 +62,7 @@ public class OrderController {
         return SaResult.ok("success");
     }
 
-    @ApiOperation(value = "获取未匹配退单", notes = "",
+    @ApiOperation(value = "获取未完结退单", notes = "",
             httpMethod = "POST")
     @PostMapping("/getMismatchRefundOrders")
     public SaResult getMismatchRefundOrders(Order.GetPageDTO dto) {
@@ -74,6 +74,13 @@ public class OrderController {
     @PostMapping("/getMismatchFakeOrders")
     public SaResult getMismatchFakeOrders(Order.GetPageDTO dto) {
         return SaResult.ok("success").setData(new JSONObject().fluentPut("mismatchFakeOrders", orderService.getMismatchFakeOrders(dto)));
+    }
+
+    @ApiOperation(value = "获取未匹配个人刷单退款", notes = "",
+            httpMethod = "POST")
+    @PostMapping("/getMismatchPersonalFakeOrders")
+    public SaResult getMismatchPersonalFakeOrders(Order.GetPageDTO dto) {
+        return SaResult.ok("success").setData(new JSONObject().fluentPut("mismatchPersonalFakeOrders", orderService.getMismatchPersonalFakeOrders(dto)));
     }
 
     @ApiOperation(value = "删除未匹配团队刷单", notes = "彻底删除未匹配团队刷单", httpMethod = "POST")
