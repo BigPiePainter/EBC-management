@@ -9,6 +9,8 @@ import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -55,8 +57,7 @@ public class OrderFileUtils {
     public static boolean orderPreProcess(Sheet sheet, FileState state) {
 
         state.setState("订单 格式校验中");
-        UploadWebSocket.sendStateToAll(state, true
-        );
+        UploadWebSocket.sendStateToAll(state, true);
 
         var today = Calendar.getInstance();
         var earliestDay = Calendar.getInstance();
@@ -308,7 +309,93 @@ public class OrderFileUtils {
         log.info("去重检查完毕");
         if (set.size() != realRowNum) {
             state.setCode(-1);
-            state.setState("补单 有退单编号重复的数据, 准确来说重复了 " + (realRowNum - set.size()) + " 个");
+            state.setState("补单 有订单编号重复的数据, 准确来说重复了 " + (realRowNum - set.size()) + " 个");
+            return false;
+        }
+
+        state.setRealRowNum(realRowNum);
+        return true;
+    }
+
+
+    //检查所有格式的合法性并计算真实数据行数
+    public static boolean personalFakeOrderPreProcess(Sheet sheet, FileState state) {
+        state.setState("个人补单退款 格式校验中");
+        state.setCode(-1);
+        UploadWebSocket.sendStateToAll(state, true);
+
+        var today = Calendar.getInstance();
+        var earliestDay = Calendar.getInstance();
+        earliestDay.set(2022, Calendar.FEBRUARY, 1);
+
+        var totalRow = sheet.getLastRowNum();
+        //判断表格信息合法性
+        Row row;
+        Cell cellA, cellB;
+        CellType typeA, typeB;
+        boolean isABlank, isBBlank;
+
+        var touchBottom = false;
+        var realRowNum = 0;
+
+        var dateTimeFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        for (var i = 1; i < totalRow; i++) {
+            row = sheet.getRow(i);
+            cellA = row.getCell(0);
+            cellB = row.getCell(1);
+            isABlank = isBlankCell(cellA);
+            isBBlank = isBlankCell(cellB);
+            if (touchBottom) {
+                if (!isABlank || !isBBlank) {
+                    state.setState((i + 1) + "行 不应该有东西才对");
+                    return false;
+                }
+            } else {
+                if (isABlank && isBBlank) {
+                    log.info("TouchButtom");
+                    touchBottom = true;
+                    continue;
+                }
+                realRowNum = i;
+                if (isABlank || isBBlank) {
+                    state.setState("第" + (i + 1) + "行有数据丢失");
+                    return false;
+                }
+                typeA = cellA.getCellType();
+                typeB = cellB.getCellType();
+                if (typeB == CellType.STRING){
+                    var str = cellB.getStringCellValue();
+                    try {
+                        cellB.setCellValue(dateTimeFormat.parse(str));
+                        typeB = cellB.getCellType();
+                    } catch (ParseException e) {
+                        state.setState("第" + (i + 1) + "行的日期格式好像有点问题");
+                        return false;
+                    }
+                }
+                if (typeA != CellType.STRING || typeB != CellType.NUMERIC) {
+                    log.info("有问题");
+                    log.info(String.valueOf(typeA));
+                    log.info(String.valueOf(typeB));
+                    state.setState("第" + (i + 1) + "行某些数据的格式好像有点问题");
+                    return false;
+                }
+            }
+
+
+        }
+
+
+        //检查重复
+        log.info(String.valueOf(realRowNum));
+        var set = new HashSet<String>();
+        for (var i = 1; i <= realRowNum; i++) {
+            set.add(sheet.getRow(i).getCell(0).getStringCellValue());
+        }
+        log.info("去重检查完毕");
+        if (set.size() != realRowNum) {
+            state.setCode(-1);
+            state.setState("补单 有订单号重复的数据, 准确来说重复了 " + (realRowNum - set.size()) + " 个");
             return false;
         }
 

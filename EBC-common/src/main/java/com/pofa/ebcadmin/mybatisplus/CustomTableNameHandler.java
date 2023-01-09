@@ -21,7 +21,7 @@ public class CustomTableNameHandler implements TableNameHandler {
 
     @Override
     public String dynamicTableName(String sql, String tableName) {
-        if (tableName.equals("orders") || tableName.equals("refundorders") || tableName.equals("fakeorders")) {
+        if (tableName.equals("orders") || tableName.equals("refundorders") || tableName.equals("fakeorders") || tableName.equals("fakeorders_personal")) {
             var newName = customTableName.get();
             if (null == newName){
                 return tableName;

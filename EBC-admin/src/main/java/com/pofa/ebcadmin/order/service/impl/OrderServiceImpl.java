@@ -78,6 +78,7 @@ public class OrderServiceImpl implements OrderService {
     public String[] orderHeader = {"子订单编号", "主订单编号", "买家会员名", "买家会员ID", "支付单号", "买家应付货款", "买家应付邮费", "总金额", "买家实际支付金额", "子单实际支付金额", "订单状态", "收件人姓名", "收货地址", "联系手机", "订单创建时间", "订单付款时间", "宝贝标题", "宝贝数量", "物流单号", "物流公司", "店铺ID", "店铺名称", "供应商ID", "供应商名称", "仓发类型", "退款金额", "颜色/尺码", "商家编码", "商品编码"};
     public String[] refundOrderHeader = {"订单编号", "退款单编号", "退款类型", "订单付款时间", "商品ID", "订单创建时间", "宝贝标题", "交易金额", "买家退款金额", "发货状态", "发货物流信息", "是否需要退货", "退款申请时间", "退款状态", "客服介入状态", "卖家退货地址", "退货物流单号", "退货物流公司", "买家退款原因", "完结时间", "退款操作人", "卖家备注"};
     public String[] fakeOrderHeader = {"序号", "会员号", "订单编号", "价格", "价格合计", "佣金", "佣金合计", "诉求日期", "佣金", "品数", "本单佣金", "团队"};
+    public String[] personalFakeOrderHeader = {"线上订单号", "付款日期"};
 
 
     @Override
@@ -126,20 +127,29 @@ public class OrderServiceImpl implements OrderService {
                 }
                 return;
             }
-            //刷单信息
+            //刷单信息(团队刷单，破0刷单)
             if (isValidFileType(sheet, fakeOrderHeader)) {
                 if (fakeOrderPreProcess(sheet, state)) {
                     _fakeOrderFileProcess(sheet, state);
                 }
                 return;
             }
+            //个人刷单退款信息
+            if (isValidFileType(sheet, personalFakeOrderHeader)) {
+                if (personalFakeOrderPreProcess(sheet, state)) {
+                    _personalFakeOrderFileProcess(sheet, state);
+                }
+                return;
+            }
 
             state.setCode(-1); //error
             state.setState("没有匹配到任何文件类型，确保表格的第一行为数据头部");
+            UploadWebSocket.sendStateToAll(state, true);
         } catch (Exception e) {
             e.printStackTrace();
             state.setCode(-1); //error
             state.setState("Excel 文件打开失败");
+            UploadWebSocket.sendStateToAll(state, true);
             log.info("Excel 文件打开失败");
         }
         //log.info(state.getFileName() + " 处理完毕");
@@ -474,6 +484,9 @@ public class OrderServiceImpl implements OrderService {
         //认领大厅
         mismatchProductDao.replaceBatchSomeColumn(mismatchProductInfos);
         _tryMatchMisMatchAllProducts();
+
+        //个人刷单退款
+        _tryMatchMisMatchAllPersonalFakeOrders();
     }
 
 
@@ -549,7 +562,7 @@ public class OrderServiceImpl implements OrderService {
                 log.info("开始追溯");
 
                 calendar.setTime(dayFormat.parse(key));
-                for (int j = 0; j < 10; j++) { //从全部订单里追溯10天
+                for (int j = 0; j < 30; j++) { //从全部订单里追溯30天
                     log.info("剩余未检测：" + undetectedFakeOrderFragment.size());
                     if (undetectedFakeOrderFragment.isEmpty()) break;
                     CustomTableNameHandler.customTableName.set("z_orders_" + dayFormat.format(calendar.getTime()));
@@ -596,6 +609,126 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+
+    public void _personalFakeOrderFileProcess(Sheet sheet, FileState state) {
+        state.setCode(1); //processing
+        state.setState("解析中（个人补单退款）");
+        UploadWebSocket.sendStateToAll(state, true);
+
+        var realRowNum = state.getRealRowNum();
+
+        var personalFakeOrderPurchased = new HashMap<String, ArrayList<PersonalFakeOrderInfo>>();
+
+        Row row;
+        for (var i = 1; i <= realRowNum; i++) {
+            row = sheet.getRow(i);
+
+            var orderId = Long.parseLong(row.getCell(0).getStringCellValue());
+            var orderPaymentTime = row.getCell(1).getDateCellValue();
+
+            var personalFakeOrderInfo = new PersonalFakeOrderInfo()
+                    .setId(orderId)
+                    .setOrderPaymentTime(orderPaymentTime);
+
+
+            var belongPurchased = monthFormat.format(orderPaymentTime);
+
+            if (!personalFakeOrderPurchased.containsKey(belongPurchased)) {
+                personalFakeOrderPurchased.put(belongPurchased, new ArrayList<>());
+            }
+            personalFakeOrderPurchased.get(belongPurchased).add(personalFakeOrderInfo);
+        }
+
+
+        try {
+            _personalFakeOrderIntoDatabase(personalFakeOrderPurchased);
+        } catch (Exception e) {
+            e.printStackTrace();
+            state.setCode(-1);
+            state.setState("个人补单退款 保存时发生了一些问题");
+            return;
+        }
+
+
+        state.setCode(2); //成功
+        state.setState(String.format("个人补单退款 完事了"));
+    }
+
+
+
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
+    public void _personalFakeOrderIntoDatabase(HashMap<String, ArrayList<PersonalFakeOrderInfo>> personalFakeOrderPurchased){
+        _personalFakeOrderIntoDatabaseImpl(personalFakeOrderPurchased);
+    }
+
+    public void _personalFakeOrderIntoDatabaseImpl(HashMap<String, ArrayList<PersonalFakeOrderInfo>> personalFakeOrderPurchased){
+        for (var entry : personalFakeOrderPurchased.entrySet()) {
+            var key = entry.getKey();
+            var value = entry.getValue();
+            var size = value.size();
+            for (int i = 0; i < size; i += 10000) {
+                var personalFakeOrderRequestedListFragment = value.subList(i, Math.min(i + 10000, size));
+                var undetectedPersonalFakeOrderFragment = personalFakeOrderRequestedListFragment.stream().collect(Collectors.toMap(PersonalFakeOrderInfo::getId, order -> order));
+                var detectedPersonalFakeOrderFragment = new HashMap<Long, PersonalFakeOrderInfo>();
+                var detectedFakeOrderPurchasedDateMapFragment = new HashMap<String, ArrayList<PersonalFakeOrderInfo>>();
+
+                log.info("开始匹配");
+
+                log.info("剩余未检测：" + undetectedPersonalFakeOrderFragment.size());
+                if (undetectedPersonalFakeOrderFragment.isEmpty()) break;
+
+                CustomTableNameHandler.customTableName.set("z_refundorders_purchased_" + key);
+                var result = refundOrderDao.selectList(new QueryWrapper<RefundOrderInfo>().select("distinct order_id, refund_end_time, order_payment_time").isNotNull("refund_end_time").in("order_id", undetectedPersonalFakeOrderFragment.values().stream().map(PersonalFakeOrderInfo::getId).toList()));
+
+                log.info(String.valueOf(result.size()));
+                //log.info(undetectedPersonalFakeOrderFragment.toString());
+                //log.info(result.toString());
+                result.forEach(refundOrderInfoFromDatabase -> {
+                    undetectedPersonalFakeOrderFragment.remove(refundOrderInfoFromDatabase.getOrderId());
+                    var fakeOrder = new PersonalFakeOrderInfo().setId(refundOrderInfoFromDatabase.getOrderId()).setOrderPaymentTime(refundOrderInfoFromDatabase.getOrderPaymentTime()).setRefundEndTime(refundOrderInfoFromDatabase.getRefundEndTime());
+
+                    detectedPersonalFakeOrderFragment.put(refundOrderInfoFromDatabase.getOrderId(), fakeOrder);
+
+                    var belongFinished = monthFormat.format(refundOrderInfoFromDatabase.getRefundEndTime());
+                    if (!detectedFakeOrderPurchasedDateMapFragment.containsKey(belongFinished)) {
+                        detectedFakeOrderPurchasedDateMapFragment.put(belongFinished, new ArrayList<>());
+                    }
+                    detectedFakeOrderPurchasedDateMapFragment.get(belongFinished).add(fakeOrder);
+                });
+                System.out.println("--------------------");
+                System.out.println(undetectedPersonalFakeOrderFragment.size());
+                System.out.println(detectedPersonalFakeOrderFragment.size());
+                System.out.println(detectedFakeOrderPurchasedDateMapFragment.size());
+                //log.info(undetectedPersonalFakeOrderFragment.toString());
+                //log.info(detectedPersonalFakeOrderFragment.toString());
+
+                //按支付日期插入全部匹配到的个人补单退款
+                if (!detectedPersonalFakeOrderFragment.isEmpty()) {
+                    CustomTableNameHandler.customTableName.set("z_fakeorders_personal_purchased_" + key);
+                    System.out.println(personalFakeOrderDao.replaceBatchSomeColumn(detectedPersonalFakeOrderFragment.values().stream().toList()));
+                    CustomTableNameHandler.customTableName.set("fakeorders_personal");
+                    System.out.println(personalFakeOrderDao.delete(new QueryWrapper<PersonalFakeOrderInfo>().in("id", detectedPersonalFakeOrderFragment.keySet())));
+                }
+                //按退款完结日期插入全部匹配到的补单
+                System.out.println("---");
+                for (var _entry : detectedFakeOrderPurchasedDateMapFragment.entrySet()) {
+                    var belongFinished = _entry.getKey();
+                    var list = _entry.getValue();
+
+                    System.out.println(list.size());
+                    CustomTableNameHandler.customTableName.set("z_fakeorders_personal_finished_" + belongFinished);
+                    System.out.println(personalFakeOrderDao.replaceBatchSomeColumn(list));
+                }
+                //插入未匹配到的个人补单退款
+                if (!undetectedPersonalFakeOrderFragment.isEmpty()) {
+                    CustomTableNameHandler.customTableName.set("fakeorders_personal");
+                    System.out.println(personalFakeOrderDao.replaceBatchSomeColumn(undetectedPersonalFakeOrderFragment.values().stream().toList()));
+                }
+
+            }
+        }
+    }
+
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
     public JSONObject getMismatchFakeOrders(Order.GetPageDTO dto) {
@@ -623,6 +756,23 @@ public class OrderServiceImpl implements OrderService {
         return new JSONObject().fluentPut("refundorders", page.getRecords()).fluentPut("total", page.getTotal());
     }
 
+
+    //内部无事务
+    public void _tryMatchMisMatchAllPersonalFakeOrders(){
+        var allPersonalFakeOrders = personalFakeOrderDao.selectList(null);
+        var personalFakeOrderPurchased = new HashMap<String, ArrayList<PersonalFakeOrderInfo>>();
+        allPersonalFakeOrders.forEach(personalFakeOrderInfo -> {
+            var belongPurchased = monthFormat.format(personalFakeOrderInfo.getOrderPaymentTime());
+            if (!personalFakeOrderPurchased.containsKey(belongPurchased)) {
+                personalFakeOrderPurchased.put(belongPurchased, new ArrayList<>());
+            }
+            personalFakeOrderPurchased.get(belongPurchased).add(personalFakeOrderInfo);
+        });
+        _personalFakeOrderIntoDatabaseImpl(personalFakeOrderPurchased);
+    }
+
+
+    //无需事务
     public void _tryMatchMisMatchAllProducts() {
         var mismatchProducts = mismatchProductDao.selectList(new QueryWrapper<MismatchProductInfo>().select("id"));
         var products = productDao.selectList(new QueryWrapper<ProductInfo>().select("id"));

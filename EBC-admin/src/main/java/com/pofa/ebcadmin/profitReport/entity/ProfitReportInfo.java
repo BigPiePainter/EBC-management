@@ -43,6 +43,7 @@ public class ProfitReportInfo {
 
     private BigDecimal totalFakeAmount; //补单额
     private Long totalFakeCount; //补单数
+    private Long totalPersonalFakeCount; //个人补单退款数
     private BigDecimal totalBrokerage; //刷单佣金
 
     private BigDecimal totalRefundAmount; //退款金额

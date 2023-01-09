@@ -16,7 +16,10 @@ import java.util.Date;
 @Repository
 @TableName("fakeorders_personal")
 public class PersonalFakeOrderInfo {
+
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
     private Date orderPaymentTime;
+
+    private Date refundEndTime;
 }

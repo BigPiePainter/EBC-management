@@ -14,7 +14,6 @@ import java.util.List;
 public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
 
     @Select("""
-              
               WITH product_ascription AS (
                 SELECT
                   a.product,
@@ -45,17 +44,26 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                 where
                   order_payment_time = ${monthDate}
               ),
+              fake_order_personal_purchased AS (
+                select
+                  id
+                from
+                  z_fakeorders_personal_purchased_${month}
+                where
+                  order_payment_time = ${monthDate}
+              ),
               product_orders AS (
                 select
                   product_id,
                   product_count,
-                  actual_amount,
                   sku_name,
-                  brokerage
+                  actual_amount,
+                  brokerage,
+                  fake_order_personal_purchased.id as personal
                 from
                   z_orders_${monthDate}
                   LEFT JOIN fake_order on z_orders_${monthDate}.order_id = fake_order.id
-                  join product_ascription on z_orders_${monthDate}.product_id = product_ascription.product
+                  LEFT JOIN fake_order_personal_purchased on z_orders_${monthDate}.order_id = fake_order_personal_purchased.id -- join product_ascription on z_orders_${monthDate}.product_id = product_ascription.product
               ),
               manufacturers_temp AS (
                 SELECT
@@ -185,6 +193,7 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                   sum(total_brokerage) as total_brokerage,
                   sum(total_fake_amount) as total_fake_amount,
                   sum(fake_count) as total_fake_count,
+                  sum(personal_fake_count) as total_personal_fake_count,
                   count(*) - count(sku_cost) as wrong_count
                 from
                   (
@@ -194,11 +203,20 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                       product_count,
                       actual_amount,
                       sku_cost,
-                      if (sku_price is null, actual_amount, product_count * sku_price) as total_price,
-                      if (sku_price is null, actual_amount, (product_count - fake_count) * sku_cost) as total_cost,
+                      if (
+                        sku_price is null,
+                        actual_amount,
+                        product_count * sku_price
+                      ) as total_price,
+                      if (
+                        sku_price is null,
+                        actual_amount,
+                        (product_count - fake_count - personal_fake_count) * sku_cost
+                      ) as total_cost,
                       total_brokerage,
                       total_fake_amount,
-                      fake_count
+                      fake_count,
+                      personal_fake_count
                     from
                       (
                         select
@@ -206,9 +224,10 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                           sku_name,
                           sum(product_count) as product_count,
                           sum(actual_amount) as actual_amount,
-                          count(brokerage) as fake_count,
+                          count(brokerage > 0 or null) as fake_count, -- 团队刷单数量
+                          count((personal or brokerage = 0) or null) as personal_fake_count, -- 个人刷单退款数量
                           sum(brokerage) as total_brokerage,
-                          sum(if (brokerage > 0, actual_amount, 0)) as total_fake_amount -- 判断是否刷单
+                          sum(if (brokerage IS NOT NULL OR personal IS NOT NULL, actual_amount, 0)) as total_fake_amount -- 判断是否刷单
                         from
                           product_orders
                         group by
@@ -223,10 +242,13 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
               ),
               finished_refund_order_amount AS (
                 SELECT
-                    product_id as refund_product_id,
-                    sum(refund_amount) as total_refund_amount,
-                    sum(if (express_status = false, refund_amount, 0)) as total_refund_with_no_ship_amount,
-                    count(express_status = false or null) as refund_with_no_ship_count
+                  product_id as refund_product_id,
+                  sum(refund_amount) as total_refund_amount,
+                  sum(if (express_status = false, refund_amount, 0)) as total_refund_with_no_ship_amount,
+                  count(
+                    express_status = false
+                    or null
+                  ) as refund_with_no_ship_count
                 FROM
                   (
                     SELECT
@@ -234,11 +256,16 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                       refund_amount,
                       express_status
                     FROM
-                      pofa.z_refundorders_finished_${month}
-                      join product_ascription on z_refundorders_finished_${month}.product_id = product_ascription.product
+                      pofa.z_refundorders_finished_${month} -- join product_ascription on z_refundorders_finished_${month}.product_id = product_ascription.product
                     where
                       refund_end_time = ${monthDate}
                       AND refund_status = 1
+                      AND order_id NOT IN (
+                        select
+                          id
+                        from
+                          z_fakeorders_personal_finished_${month}
+                      )
                   ) as a
                 group by
                   product_id
@@ -270,6 +297,7 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                 ifnull(total_refund_with_no_ship_amount, 0) as total_refund_with_no_ship_amount,
                 ifnull(refund_with_no_ship_count, 0) as refund_with_no_ship_count,
                 ifnull(total_fake_count, 0) as total_fake_count,
+                ifnull(total_personal_fake_count, 0) as total_personal_fake_count,
                 ifnull(total_fake_amount, 0) as total_fake_amount,
                 ifnull(total_brokerage, 0) as total_brokerage,
                 ifnull(total_price, 0) as total_price,
@@ -308,7 +336,7 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                 join pofa.products on i.product_id = pofa.products.id
                 left join manufacturers on i.product_id = manufacturers.product_id
                 left join first_category on pofa.products.first_category = first_category.category_id
-                left join product_statistic on i.product_id = product_statistic.product_id;
+                left join product_statistic on i.product_id = product_statistic.product_id
                         
             """)
     List<ProfitReportInfo> calculateDailyReport(@Param("month") String month, @Param("monthDate") String monthDate);
