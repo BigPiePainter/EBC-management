@@ -1,4 +1,4 @@
-package com.pofa.ebcadmin.userLogin.dto;
+package com.pofa.ebcadmin.user.dto;
 
 import lombok.Data;
 
@@ -10,6 +10,16 @@ public class SysUser {
         private String username;
         private String password;
     }
+
+    @Data
+    public static class ChangePasswordDTO {
+        private String oldPassword;
+        private String newPassword;
+
+        private String repeatPassword;
+    }
+
+
 
     @Data
     public static class RegistDTO {

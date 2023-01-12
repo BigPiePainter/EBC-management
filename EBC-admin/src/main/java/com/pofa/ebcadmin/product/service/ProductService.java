@@ -3,7 +3,7 @@ package com.pofa.ebcadmin.product.service;
 import com.alibaba.fastjson2.JSONObject;
 import com.pofa.ebcadmin.product.dto.Product;
 import com.pofa.ebcadmin.product.entity.MismatchProductInfo;
-import com.pofa.ebcadmin.userLogin.entity.UserInfo;
+import com.pofa.ebcadmin.user.entity.UserInfo;
 
 import java.util.List;
 

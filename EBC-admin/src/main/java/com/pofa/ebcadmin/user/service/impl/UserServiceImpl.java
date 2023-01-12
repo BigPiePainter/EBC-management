@@ -1,20 +1,15 @@
-package com.pofa.ebcadmin.userLogin.service.impl;
+package com.pofa.ebcadmin.user.service.impl;
 
 import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONArray;
-import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.pofa.ebcadmin.category.entity.CategoryInfo;
 import com.pofa.ebcadmin.department.dao.DepartmentDao;
-import com.pofa.ebcadmin.department.entity.DepartmentInfo;
-import com.pofa.ebcadmin.product.entity.ProductInfo;
 import com.pofa.ebcadmin.team.dao.TeamDao;
-import com.pofa.ebcadmin.team.dto.Team;
-import com.pofa.ebcadmin.team.entity.TeamInfo;
-import com.pofa.ebcadmin.userLogin.dao.UserDao;
-import com.pofa.ebcadmin.userLogin.dto.SysUser;
-import com.pofa.ebcadmin.userLogin.entity.UserInfo;
-import com.pofa.ebcadmin.userLogin.service.UserService;
+import com.pofa.ebcadmin.user.dao.UserDao;
+import com.pofa.ebcadmin.user.dto.SysUser;
+import com.pofa.ebcadmin.user.entity.UserInfo;
+import com.pofa.ebcadmin.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Service
@@ -104,6 +97,14 @@ public class UserServiceImpl implements UserService {
                 .eq("password", password);
         return userDao.selectList(wrapper);
     }
+
+
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
+    public int changePassword(Long uid, String password) {
+        return userDao.update(null, new UpdateWrapper<UserInfo>().eq("uid", uid).set("password", password));
+    }
+
 
 //    @Override
 //    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)

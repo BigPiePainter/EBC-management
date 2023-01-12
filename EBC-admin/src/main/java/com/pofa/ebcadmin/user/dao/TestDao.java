@@ -1,7 +1,7 @@
-package com.pofa.ebcadmin.userLogin.dao;
+package com.pofa.ebcadmin.user.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.pofa.ebcadmin.userLogin.entity.UserInfo;
+import com.pofa.ebcadmin.user.entity.UserInfo;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper

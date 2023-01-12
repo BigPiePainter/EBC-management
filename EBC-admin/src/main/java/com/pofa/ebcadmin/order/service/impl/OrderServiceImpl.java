@@ -759,6 +759,7 @@ public class OrderServiceImpl implements OrderService {
 
     //内部无事务
     public void _tryMatchMisMatchAllPersonalFakeOrders(){
+        CustomTableNameHandler.customTableName.set("fakeorders_personal");
         var allPersonalFakeOrders = personalFakeOrderDao.selectList(null);
         var personalFakeOrderPurchased = new HashMap<String, ArrayList<PersonalFakeOrderInfo>>();
         allPersonalFakeOrders.forEach(personalFakeOrderInfo -> {

@@ -164,15 +164,14 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                   (
                     SELECT
                       product_id,
-                      sku_id,
                       sku_name,
                       sku_price,
                       sku_cost,
                       start_time,
                       create_time,
-                      DENSE_RANK() OVER (
+                      ROW_NUMBER() OVER (
                         PARTITION BY product_id,
-                        sku_id
+                        sku_name
                         ORDER BY
                           start_time DESC
                       ) AS num
@@ -225,7 +224,7 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                           sum(product_count) as product_count,
                           sum(actual_amount) as actual_amount,
                           count(brokerage > 0 or null) as fake_count, -- 团队刷单数量
-                          count((personal or brokerage = 0) or null) as personal_fake_count, -- 个人刷单退款数量
+                          count((personal or brokerage = 0) or null) as personal_fake_count, -- 个人刷单数量
                           sum(brokerage) as total_brokerage,
                           sum(if (brokerage IS NOT NULL OR personal IS NOT NULL, actual_amount, 0)) as total_fake_amount -- 判断是否刷单
                         from
@@ -302,12 +301,12 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                 ifnull(total_brokerage, 0) as total_brokerage,
                 ifnull(total_price, 0) as total_price,
                 ifnull(total_cost, 0) as total_cost,
-                ifnull(wrong_count, 0) as wrong_count,
-                ROW_NUMBER() OVER (
-                  PARTITION BY department,
-                  team,
-                  owner
-                ) AS num
+                ifnull(wrong_count, 0) as wrong_count
+                -- ROW_NUMBER() OVER (
+                --   PARTITION BY department,
+                --   team,
+                --   owner
+                -- ) AS num
               from
                 (
                   SELECT
@@ -337,60 +336,69 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                 left join manufacturers on i.product_id = manufacturers.product_id
                 left join first_category on pofa.products.first_category = first_category.category_id
                 left join product_statistic on i.product_id = product_statistic.product_id
-                        
             """)
     List<ProfitReportInfo> calculateDailyReport(@Param("month") String month, @Param("monthDate") String monthDate);
 
 
     @Select("""
-                     WITH product_orders AS (
+                     WITH fake_order AS (
+                         select
+                             id,
+                             brokerage
+                         from
+                             z_fakeorders_purchased_${month}
+                         where
+                             order_payment_time = ${monthDate}
+                     ),
+                     fake_order_personal_purchased AS (
+                         select
+                             id
+                         from
+                             z_fakeorders_personal_purchased_${month}
+                         where
+                             order_payment_time = ${monthDate}
+                     ),
+                     product_orders AS (
                          select
                              product_id,
                              product_count,
+                             sku_name,
                              actual_amount,
-                             sku_name
+                             brokerage,
+                             fake_order_personal_purchased.id as personal
                          from
                              z_orders_${monthDate}
+                             LEFT JOIN fake_order on z_orders_${monthDate}.order_id = fake_order.id
+                             LEFT JOIN fake_order_personal_purchased on z_orders_${monthDate}.order_id = fake_order_personal_purchased.id -- join product_ascription on z_orders_${monthDate}.product_id = product_ascription.product
                          where
-                             product_id = ${productId}
+                             product_id = #{productId}
                      ),
-                     sku_temp AS (
+                     product_sku AS (
                          SELECT
-                             a.sku_id,
-                             sku_name,
-                             a.start_time,
-                             create_time
-                         FROM
-                             pofa.skus a
-                             join (
+                             *
+                         from
+                             (
                                  SELECT
-                                     sku_id,
-                                     max(start_time) as start_time
+                                     product_id,
+                                     sku_name,
+                                     sku_price,
+                                     sku_cost,
+                                     start_time,
+                                     create_time,
+                                     ROW_NUMBER() OVER (
+                                         PARTITION BY product_id,
+                                         sku_name
+                                         ORDER BY
+                                             start_time DESC
+                                     ) AS num
                                  FROM
-                                     pofa.skus
+                                     skus
                                  where
-                                     product_id = ${productId} and
                                      start_time <= ${monthDate}
-                                 group by
-                                     sku_id
-                             ) as b on a.sku_id = b.sku_id
-                             and a.start_time = b.start_time
-                     ),
-                     product_sku AS(
-                         SELECT
-                             sku_name
-                         FROM
-                             sku_temp a
-                             join (
-                                 SELECT
-                                     sku_id,
-                                     max(create_time) as create_time
-                                 FROM
-                                     sku_temp
-                                 group by
-                                     sku_id
-                             ) as b on a.sku_id = b.sku_id
-                             and a.create_time = b.create_time
+                                     and product_id = #{productId}
+                             ) a
+                         where
+                             num = 1
                      )
                      select
                          a.sku_name,
@@ -407,7 +415,9 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                              group by
                                  sku_name
                          ) as a
-                         left join product_sku on a.sku_name = product_sku.sku_name where product_sku.sku_name is NULL;
+                         left join product_sku on a.sku_name = product_sku.sku_name
+                     where
+                         product_sku.sku_name is NULL
             """)
     List<MismatchedSkusInfo> getMismatchedSkus(@Param("month") String month, @Param("monthDate") String monthDate, @Param("productId") Long productId);
 

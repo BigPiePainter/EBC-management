@@ -1,4 +1,4 @@
-package com.pofa.ebcadmin.userLogin.service.impl;
+package com.pofa.ebcadmin.user.service.impl;
 
 import com.pofa.ebcadmin.product.dao.SkuDao;
 import com.pofa.ebcadmin.product.entity.SkuInfo;

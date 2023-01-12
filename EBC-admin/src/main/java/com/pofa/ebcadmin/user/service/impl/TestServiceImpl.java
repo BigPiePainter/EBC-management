@@ -1,17 +1,11 @@
-package com.pofa.ebcadmin.userLogin.service.impl;
+package com.pofa.ebcadmin.user.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.pofa.ebcadmin.userLogin.dao.TestDao;
-import com.pofa.ebcadmin.userLogin.dao.UserDao;
-import com.pofa.ebcadmin.userLogin.entity.UserInfo;
-import com.pofa.ebcadmin.userLogin.service.TestService;
-import com.pofa.ebcadmin.userLogin.service.UserService;
+import com.pofa.ebcadmin.user.dao.TestDao;
+import com.pofa.ebcadmin.user.entity.UserInfo;
+import com.pofa.ebcadmin.user.service.TestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;

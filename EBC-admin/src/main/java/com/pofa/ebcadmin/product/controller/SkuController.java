@@ -6,7 +6,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.pofa.ebcadmin.product.service.ProductService;
 import com.pofa.ebcadmin.product.dto.Sku;
 import com.pofa.ebcadmin.product.service.SkuService;
-import com.pofa.ebcadmin.userLogin.service.UserService;
+import com.pofa.ebcadmin.user.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;

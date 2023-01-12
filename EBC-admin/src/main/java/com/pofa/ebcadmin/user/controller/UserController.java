@@ -1,4 +1,4 @@
-package com.pofa.ebcadmin.userLogin.controller;
+package com.pofa.ebcadmin.user.controller;
 
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
@@ -6,14 +6,16 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.util.SaResult;
 import com.alibaba.fastjson2.JSONObject;
 import com.nimbusds.jose.JOSEException;
-import com.pofa.ebcadmin.userLogin.dto.SysUser;
-import com.pofa.ebcadmin.userLogin.entity.UserInfo;
-import com.pofa.ebcadmin.userLogin.service.TestService;
-import com.pofa.ebcadmin.userLogin.service.UserService;
+import com.pofa.ebcadmin.product.dto.Product;
+import com.pofa.ebcadmin.user.dto.SysUser;
+import com.pofa.ebcadmin.user.entity.UserInfo;
+import com.pofa.ebcadmin.user.service.TestService;
+import com.pofa.ebcadmin.user.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,11 +23,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.text.ParseException;
+import java.util.Objects;
 
 @Api(tags = "用户")
 @Controller
 @RestController
 @RequestMapping("user")
+@Slf4j
 public class UserController {
     @Autowired
     public UserService userService;
@@ -37,7 +41,7 @@ public class UserController {
     @ApiOperation(value = "登录", notes = "没什么解释的",
             httpMethod = "POST")
     @PostMapping("/login")
-    public SaResult userLogin(SysUser.LoginDTO user) throws ParseException, JOSEException {
+    public SaResult userLogin(SysUser.LoginDTO user) {
         var userInfos = userService.userLogin(user.getUsername(), user.getPassword());
         if (!userInfos.isEmpty()) {
             StpUtil.login(userInfos.get(0).getUid());
@@ -77,7 +81,7 @@ public class UserController {
         return SaResult.ok("success").setData(data).setCode(code);
     }
 
-    @ApiOperation(value = "注册", notes = "用于用户的注册，账号+密码",
+    @ApiOperation(value = "修改", notes = "修改一个用户的全部信息",
             httpMethod = "POST")
     @PostMapping("/modify")
     public SaResult editUser(SysUser.EditDTO dto) {
@@ -86,6 +90,41 @@ public class UserController {
         var data = switch (code) {
             case 1 -> "修改成功";
             case -100 -> "账号已存在";
+            default -> "未知错误";
+        };
+
+        return SaResult.ok("success").setData(data).setCode(code);
+    }
+
+    @ApiOperation(value = "修改密码", notes = "修改密码",
+            httpMethod = "POST")
+    @PostMapping("/changePassword")
+    @SaCheckLogin
+    public SaResult changePassword(SysUser.ChangePasswordDTO dto) {
+
+        UserInfo user = (UserInfo) StpUtil.getSession().get("user");
+
+        if (!dto.getOldPassword().equals(user.getPassword())){
+            return SaResult.ok("success").setData("修改失败！信息不匹配");
+        }
+
+        if (!dto.getNewPassword().equals(dto.getRepeatPassword())){
+            return SaResult.ok("success").setData("修改失败！两次输入的密码不一致");
+        }
+
+        if (dto.getNewPassword().length() > 20){
+            return SaResult.ok("success").setData("修改失败！密码太长了");
+        }
+
+        log.info(String.valueOf(user));
+        log.info(String.valueOf(dto));
+
+
+        var code = userService.changePassword(user.getUid(), dto.getNewPassword());
+
+
+        var data = switch (code) {
+            case 1 -> "修改成功";
             default -> "未知错误";
         };
 

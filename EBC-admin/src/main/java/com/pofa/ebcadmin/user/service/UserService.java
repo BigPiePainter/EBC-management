@@ -1,7 +1,7 @@
-package com.pofa.ebcadmin.userLogin.service;
+package com.pofa.ebcadmin.user.service;
 
-import com.pofa.ebcadmin.userLogin.dto.SysUser;
-import com.pofa.ebcadmin.userLogin.entity.UserInfo;
+import com.pofa.ebcadmin.user.dto.SysUser;
+import com.pofa.ebcadmin.user.entity.UserInfo;
 
 import java.util.List;
 
@@ -10,6 +10,9 @@ public interface UserService {
     int userRegistry(SysUser.RegistDTO dto);
 
     int editUser(SysUser.EditDTO dto);
+
+
+    int changePassword(Long uid, String password);
 
     List<UserInfo> userLogin(String username, String password);
 
