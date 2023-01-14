@@ -108,4 +108,29 @@ public class OrderController {
         return SaResult.ok("success").setData(data).setCode(code);
     }
 
+    @ApiOperation(value = "删除未匹配个人刷单", notes = "彻底删除未匹配个人刷单", httpMethod = "POST")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "ids", value = "要删除的未匹配个人刷单的ID，用英文逗号隔开", dataType = "String", paramType = "query", dataTypeClass = String.class, example = "1000,1001", required = false),
+    })
+    @PostMapping("/delete")
+    public SaResult deletePersonalFakeOrders(Order.DeletePersonalFakeOrderDTO dto) {
+        log.info("deletePersonalFakeOrders TEST");
+
+        var code = orderService.deletePresonalFakeOrderByIds(dto.getIds());
+
+        log.info(String.valueOf(code));
+
+        String data;
+        if (code > 0) {
+            data = "成功删除" + code + "条个人刷单";
+        } else {
+            data = switch (code) {
+                default -> "未知错误";
+            };
+        }
+
+
+        return SaResult.ok("success").setData(data).setCode(code);
+    }
+
 }

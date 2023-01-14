@@ -802,6 +802,13 @@ public class OrderServiceImpl implements OrderService {
         return fakeOrderDao.delete(new QueryWrapper<FakeOrderInfo>().in("id", List.of(_ids)));
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
+    public int deletePresonalFakeOrderByIds(String ids) {
+        var _ids = ids.split(",");
+        return fakeOrderDao.delete(new QueryWrapper<FakeOrderInfo>().in("id", List.of(_ids)));
+    }
+
 
 }
 

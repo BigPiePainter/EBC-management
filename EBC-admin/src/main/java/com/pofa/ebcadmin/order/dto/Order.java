@@ -22,6 +22,11 @@ public class Order {
     }
 
     @Data
+    public static class DeletePersonalFakeOrderDTO {
+        private String ids;
+    }
+
+    @Data
     public static class GetPageDTO {
         private Long page;
         private Long itemsPerPage;
