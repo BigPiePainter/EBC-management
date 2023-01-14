@@ -79,9 +79,16 @@ public class ProfitReportImpl implements ProfitReportService {
             productProfit.setProductCount(productProfit.getProductCount() + item.getProductCount());
             productProfit.setTotalAmount(productProfit.getTotalAmount().add(item.getTotalAmount()));
             productProfit.setTotalRefundAmount(productProfit.getTotalRefundAmount().add(item.getTotalRefundAmount()));
+            productProfit.setTotalRefundWithNoShipCount(productProfit.getTotalRefundWithNoShipCount() + item.getTotalRefundWithNoShipCount());
             productProfit.setTotalRefundWithNoShipAmount(productProfit.getTotalRefundWithNoShipAmount().add(item.getTotalRefundWithNoShipAmount()));
+
             productProfit.setTotalFakeCount(productProfit.getTotalFakeCount() + item.getTotalFakeCount());
             productProfit.setTotalFakeAmount(productProfit.getTotalFakeAmount().add(item.getTotalFakeAmount()));
+            productProfit.setTotalPersonalFakeCount(productProfit.getTotalPersonalFakeCount() + item.getTotalPersonalFakeCount());
+            productProfit.setTotalPersonalFakeAmount(productProfit.getTotalPersonalFakeAmount().add(item.getTotalPersonalFakeAmount()));
+            productProfit.setTotalPersonalFakeEnablingCount(productProfit.getTotalPersonalFakeEnablingCount() + item.getTotalPersonalFakeEnablingCount());
+            productProfit.setTotalPersonalFakeEnablingAmount(productProfit.getTotalPersonalFakeEnablingAmount().add(item.getTotalPersonalFakeEnablingAmount()));
+
             productProfit.setTotalBrokerage(productProfit.getTotalBrokerage().add(item.getTotalBrokerage()));
             productProfit.setTotalPrice(productProfit.getTotalPrice().add(item.getTotalPrice()));
             productProfit.setTotalCost(productProfit.getTotalCost().add(item.getTotalCost()));

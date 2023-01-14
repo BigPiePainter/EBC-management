@@ -33,36 +33,34 @@ public class ProfitReportInfo {
     private Long owner;
 
 
-
-
-
-
     private Long orderCount;
     private Long productCount; //售卖数
     private BigDecimal totalAmount;
 
-    private BigDecimal totalFakeAmount; //补单额
-    private Long totalFakeCount; //补单数
-    private Long totalPersonalFakeCount; //个人补单退款数
+    private Long totalFakeCount;
+    private BigDecimal totalFakeAmount;
+    private Long totalPersonalFakeCount;
+    private BigDecimal totalPersonalFakeAmount;
+    private Long totalPersonalFakeEnablingCount;
+    private BigDecimal totalPersonalFakeEnablingAmount;
+
+
     private BigDecimal totalBrokerage; //刷单佣金
 
     private BigDecimal totalRefundAmount; //退款金额
+
+
+    private Long totalRefundWithNoShipCount; //未发数
+
     private BigDecimal totalRefundWithNoShipAmount; //未发仅退
 
-
-
-
     private BigDecimal refundWithNoShipCost; //未发退本
-    private Long refundWithNoShipCount; //未发数
+
 
 
     private BigDecimal totalPrice; //原售价
     private BigDecimal totalCost; //拿货成本
     private Long wrongCount; //sku错数
-
-
-
-
 
 
 }

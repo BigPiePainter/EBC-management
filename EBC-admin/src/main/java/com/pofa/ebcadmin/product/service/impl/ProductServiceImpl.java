@@ -215,15 +215,12 @@ public class ProductServiceImpl implements ProductService {
             });
 
             if (!departmentIds.isEmpty() && !teamIds.isEmpty()) {
-                wrapper.and(i -> i.in("department", departmentIds).or().in("team", teamIds));
+                wrapper.and(i -> i.in("department", departmentIds).or().in("team", teamIds).or().in("owner", user.getUid()));
             } else if (!departmentIds.isEmpty()) {
-                wrapper.in("department", departmentIds);
+                wrapper.and(i -> i.in("department", departmentIds).or().in("owner", user.getUid()));
             } else if (!teamIds.isEmpty()) {
-                wrapper.in("team", teamIds);
+                wrapper.and(i -> i.in("team", teamIds).or().in("owner", user.getUid()));
             }
-
-            //自己的持品
-            wrapper.in("owner", user.getUid());
 
         }
 
