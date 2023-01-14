@@ -116,7 +116,7 @@ public class OrderController {
     public SaResult deletePersonalFakeOrders(Order.DeletePersonalFakeOrderDTO dto) {
         log.info("deletePersonalFakeOrders TEST");
 
-        var code = orderService.deletePresonalFakeOrderByIds(dto.getIds());
+        var code = orderService.deletePersonalFakeOrderByIds(dto.getIds());
 
         log.info(String.valueOf(code));
 
@@ -128,8 +128,6 @@ public class OrderController {
                 default -> "未知错误";
             };
         }
-
-
         return SaResult.ok("success").setData(data).setCode(code);
     }
 

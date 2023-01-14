@@ -804,9 +804,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
-    public int deletePresonalFakeOrderByIds(String ids) {
+    public int deletePersonalFakeOrderByIds(String ids) {
         var _ids = ids.split(",");
-        return fakeOrderDao.delete(new QueryWrapper<FakeOrderInfo>().in("id", List.of(_ids)));
+        CustomTableNameHandler.customTableName.set("fakeorders_personal");
+        return personalFakeOrderDao.delete(new QueryWrapper<PersonalFakeOrderInfo>().in("id", List.of(_ids)));
     }
 
 
