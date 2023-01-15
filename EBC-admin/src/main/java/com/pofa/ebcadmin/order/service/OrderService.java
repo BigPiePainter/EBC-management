@@ -19,6 +19,6 @@ public interface OrderService {
 
     int deleteFakeOrderByIds(String ids);
 
-    int deletePresonalFakeOrderByIds(String ids);
+    int deletePersonalFakeOrderByIds(String ids);
 
 }
