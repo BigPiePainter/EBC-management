@@ -112,7 +112,7 @@ public class OrderController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "ids", value = "要删除的未匹配个人刷单的ID，用英文逗号隔开", dataType = "String", paramType = "query", dataTypeClass = String.class, example = "1000,1001", required = false),
     })
-    @PostMapping("/delete")
+    @PostMapping("/deletePersonalFakeOrder")
     public SaResult deletePersonalFakeOrders(Order.DeletePersonalFakeOrderDTO dto) {
         log.info("deletePersonalFakeOrders TEST");
 

@@ -5,7 +5,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.pofa.ebcadmin.category.entity.CategoryInfo;
 import com.pofa.ebcadmin.department.dao.DepartmentDao;
+import com.pofa.ebcadmin.department.entity.DepartmentInfo;
 import com.pofa.ebcadmin.team.dao.TeamDao;
+import com.pofa.ebcadmin.team.entity.TeamInfo;
 import com.pofa.ebcadmin.user.dao.UserDao;
 import com.pofa.ebcadmin.user.dto.SysUser;
 import com.pofa.ebcadmin.user.entity.UserInfo;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -134,10 +137,17 @@ public class UserServiceImpl implements UserService {
 
         if (user.getUid() != 1L) {
 
-            var permission = JSON.parseObject(user.getPermission());
-            System.out.println(permission);
-            var departmentIds = permission.getJSONObject("c").getJSONArray("d").stream().map(i -> Long.valueOf((Integer) i)).toList();
-            System.out.println(departmentIds);
+
+            var departments = departmentDao.selectList(new QueryWrapper<DepartmentInfo>().select("uid", "admin"));
+
+            var departmentIds = new ArrayList<Long>();
+            departments.forEach(departmentInfo -> {
+                if (departmentInfo.getAdmin().isEmpty()) return;
+                if (List.of(departmentInfo.getAdmin().split(",")).contains(user.getUid().toString())) {
+                    departmentIds.add(departmentInfo.getUid());
+                }
+            });
+
             if (!departmentIds.isEmpty()) {
                 wrapper.in("department", departmentIds);
             }
