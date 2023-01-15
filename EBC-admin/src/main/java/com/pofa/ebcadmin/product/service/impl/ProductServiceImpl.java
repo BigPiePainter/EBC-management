@@ -13,15 +13,9 @@ import com.pofa.ebcadmin.manufacturer.entity.ManufacturerInfo;
 import com.pofa.ebcadmin.mybatisplus.CustomTableNameHandler;
 import com.pofa.ebcadmin.order.dao.OrderDao;
 import com.pofa.ebcadmin.order.entity.OrderInfo;
-import com.pofa.ebcadmin.product.dao.AscriptionDao;
-import com.pofa.ebcadmin.product.dao.MismatchProductDao;
-import com.pofa.ebcadmin.product.dao.ProductDao;
-import com.pofa.ebcadmin.product.dao.SkuDao;
+import com.pofa.ebcadmin.product.dao.*;
 import com.pofa.ebcadmin.product.dto.Product;
-import com.pofa.ebcadmin.product.entity.AscriptionInfo;
-import com.pofa.ebcadmin.product.entity.MismatchProductInfo;
-import com.pofa.ebcadmin.product.entity.ProductInfo;
-import com.pofa.ebcadmin.product.entity.SkuInfo;
+import com.pofa.ebcadmin.product.entity.*;
 import com.pofa.ebcadmin.product.service.ProductService;
 import com.pofa.ebcadmin.team.dao.TeamDao;
 import com.pofa.ebcadmin.team.entity.TeamInfo;
@@ -57,6 +51,10 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     public ProductDao productDao;
+
+    @Autowired
+    public ProductDetailedDao productDetailedDao;
+
 
     @Autowired
     public SkuDao skuDao;
@@ -347,6 +345,14 @@ public class ProductServiceImpl implements ProductService {
         var page = new Page<ProductInfo>(dto.getPage(), dto.getItemsPerPage());
         var productInfoList = productDao.selectProductsWithSkuCountWithPage(page, wrapper.orderByDesc("modify_time"));
         return new JSONObject().fluentPut("products", productInfoList).fluentPut("total", page.getTotal()).fluentPut("category", category);
+    }
+
+
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
+    public List<ProductDetailedInfo> getAllDetailedProductsByDate(Date date) {
+        var dayFormat = new SimpleDateFormat("yyyyMMdd");
+        return productDetailedDao.getAllDetailedProductInfos(dayFormat.format(date));
     }
 
 //    @Override

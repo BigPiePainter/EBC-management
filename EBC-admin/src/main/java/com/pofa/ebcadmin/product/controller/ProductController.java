@@ -119,7 +119,7 @@ public class ProductController {
     }
 
 
-    @ApiOperation(value = "获取所有商品", notes = "需要登陆, 无法直接测试", httpMethod = "POST")
+    @ApiOperation(value = "获取所有商品", notes = "分页, 需要登陆, 无法直接测试", httpMethod = "POST")
     @ApiImplicitParams({
     })
     @SaCheckLogin
@@ -144,7 +144,22 @@ public class ProductController {
         return SaResult.ok("success").setData(data);
     }
 
+    @ApiOperation(value = "获取所有商品明细", notes = "不分页", httpMethod = "POST")
+    @ApiImplicitParams({
+    })
+    @SaCheckLogin
+    @PostMapping("/getAllDetails")
+    public SaResult getAllDetails(Product.GetDetailsDTO dto) {
+        log.info("GET TEST");
+        if (!StpUtil.isLogin()) {
+            return SaResult.ok("success").setData("用户未登录");
+        }
+        UserInfo user = (UserInfo) StpUtil.getSession().get("user");
+        log.info(String.valueOf(user));
 
+        var productDetailedInfos = productService.getAllDetailedProductsByDate(dto.getDate());
+        return SaResult.ok("success").setData(new JSONObject().fluentPut("productDetails", productDetailedInfos));
+    }
 
 
 
