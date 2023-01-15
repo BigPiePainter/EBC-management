@@ -16,24 +16,26 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
     @Select("""
             WITH product_ascription AS (
               SELECT
-                a.product,
+                product,
                 department,
                 team,
                 owner
-              FROM
-                pofa.ascriptions a
-                join (
+              from
+                (
                   SELECT
-                    product,
-                    max(start_time) as start_time
+                    *,
+                    ROW_NUMBER() OVER (
+                      PARTITION BY product
+                      ORDER BY
+                        start_time DESC
+                    ) AS num
                   FROM
                     pofa.ascriptions
                   where
                     start_time <= ${monthDate}
-                  group by
-                    product
-                ) as b on a.product = b.product
-                and a.start_time = b.start_time
+                ) a
+              where
+                num = 1
             ),
             fake_order AS (
               select
@@ -65,68 +67,28 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                 LEFT JOIN fake_order on z_orders_${monthDate}.order_id = fake_order.id
                 LEFT JOIN fake_order_personal_purchased on z_orders_${monthDate}.order_id = fake_order_personal_purchased.id -- join product_ascription on z_orders_${monthDate}.product_id = product_ascription.product
             ),
-            manufacturers_temp AS (
-              SELECT
-                a.product_id,
-                freight,
-                freight_to_payment,
-                a.start_time,
-                create_time
-              FROM
-                pofa.manufacturers a
-                join (
-                  SELECT
-                    product_id,
-                    max(start_time) as start_time
-                  FROM
-                    pofa.manufacturers
-                  where
-                    start_time <= ${monthDate}
-                  group by
-                    product_id
-                ) as b on a.product_id = b.product_id
-                and a.start_time = b.start_time
-            ),
             manufacturers AS (
               SELECT
                 a.product_id,
                 freight,
                 freight_to_payment,
                 a.start_time
-              FROM
-                manufacturers_temp a
-                join (
+              from
+                (
                   SELECT
-                    product_id,
-                    max(create_time) as create_time
+                    *,
+                    ROW_NUMBER() OVER (
+                      PARTITION BY product_id
+                      ORDER BY
+                        start_time DESC
+                    ) AS num
                   FROM
-                    manufacturers_temp
-                  group by
-                    product_id
-                ) as b on a.product_id = b.product_id
-                and a.create_time = b.create_time
-            ),
-            first_category_temp AS (
-              SELECT
-                a.category_id,
-                deduction,
-                insurance,
-                a.start_time,
-                create_time
-              FROM
-                pofa.categoryhistorys a
-                join (
-                  SELECT
-                    category_id,
-                    max(start_time) as start_time
-                  FROM
-                    pofa.categoryhistorys
+                    pofa.manufacturers
                   where
                     start_time <= ${monthDate}
-                  group by
-                    category_id
-                ) as b on a.category_id = b.category_id
-                and a.start_time = b.start_time
+                ) a
+              where
+                num = 1
             ),
             first_category AS (
               SELECT
@@ -134,18 +96,22 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                 deduction,
                 insurance,
                 a.start_time
-              FROM
-                first_category_temp a
-                join (
+              from
+                (
                   SELECT
-                    category_id,
-                    max(create_time) as create_time
+                    *,
+                    ROW_NUMBER() OVER (
+                      PARTITION BY category_id
+                      ORDER BY
+                        start_time DESC
+                    ) AS num
                   FROM
-                    first_category_temp
-                  group by
-                    category_id
-                ) as b on a.category_id = b.category_id
-                and a.create_time = b.create_time
+                    pofa.categoryhistorys
+                  where
+                    start_time <= ${monthDate}
+                ) a
+              where
+                num = 1
             ),
             a AS (
               SELECT
