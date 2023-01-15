@@ -119,6 +119,35 @@ public class ProductController {
     }
 
 
+    @ApiOperation(value = "获取所有商品", notes = "需要登陆, 无法直接测试", httpMethod = "POST")
+    @ApiImplicitParams({
+    })
+    @SaCheckLogin
+    @PostMapping("/getAll")
+    public SaResult getAll(Product.GetDTO dto) {
+        log.info("GET TEST");
+        if (!StpUtil.isLogin()) {
+            return SaResult.ok("success").setData("用户未登录");
+        }
+        UserInfo user = (UserInfo) StpUtil.getSession().get("user");
+        log.info(String.valueOf(user));
+        log.info(String.valueOf(dto));
+
+//        //查询所有下级User
+//        log.info(String.valueOf(StpUtil.getLoginIdAsLong()));
+//        var users = userService.getUserIdsWithinAuthorityById(StpUtil.getLoginIdAsLong());
+//        log.info(String.valueOf(users));
+
+        JSONObject data = productService.getAllProducts(dto);
+
+
+        return SaResult.ok("success").setData(data);
+    }
+
+
+
+
+
 //    @ApiOperation(value = "获取权限内的事业部, 组别, 商店名等类别", notes = "需要登陆", httpMethod = "POST")
 //    @ApiImplicitParams({
 //    })

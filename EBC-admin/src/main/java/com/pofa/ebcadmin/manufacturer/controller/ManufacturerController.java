@@ -86,7 +86,7 @@ public class ManufacturerController {
     @PostMapping("/delete")
     public SaResult deleteManufacturer(Manufacturer.DeleteDTO dto) {
         log.info("deleteManufacturers TEST");
-        var code = manufacturerService.deprecateManufacturersByUid(dto.getUid());
+        var code = manufacturerService.deleteManufacturersByUid(dto.getUid());
         String data = switch (code) {
             case 1 -> "删除成功";
             default -> "未知错误";
