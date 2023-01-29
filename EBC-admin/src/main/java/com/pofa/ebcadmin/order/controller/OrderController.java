@@ -51,12 +51,28 @@ public class OrderController {
         return SaResult.ok("success").setData(new JSONObject().fluentPut("fileStates", FileStateManager.getStates()));
     }
 
+    @ApiOperation(value = "获取某日订单", notes = "",
+            httpMethod = "POST")
+    @PostMapping("/getOrders")
+    public SaResult getOrders(Order.GetOrderDTO dto) {
+        var orders = orderService.getOrdersByDate(dto);
+        return SaResult.ok("success").setData(orders);
+    }
+
+
+    @ApiOperation(value = "获取真正的总成交额，包含EBC未收录的", notes = "",
+            httpMethod = "POST")
+    @PostMapping("/getRealTotalAmount")
+    public SaResult getRealTotalAmount(Order.GetDailyReportDTO dto) {
+        var amount = orderService.getRealTotalAmount(dto.getDate());
+        return SaResult.ok("success").setData(new JSONObject().fluentPut("amount", amount));
+    }
 
     @ApiOperation(value = "删除某个文件处理状态", notes = "",
             httpMethod = "POST")
     @PostMapping("/deleteFileProcessState")
     public SaResult deleteFileProcessState(Order.DeleteFileStateDTO dto) {
-        for (var fileName:dto.getFileName().split("!@#!#@!@#")) {
+        for (var fileName : dto.getFileName().split("!@#!#@!@#")) {
             FileStateManager.removeFile(fileName);
         }
         return SaResult.ok("success");

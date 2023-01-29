@@ -1,8 +1,12 @@
 package com.pofa.ebcadmin.order.service.impl;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.pofa.ebcadmin.department.entity.DepartmentInfo;
 import com.pofa.ebcadmin.mybatisplus.CustomTableNameHandler;
 import com.pofa.ebcadmin.order.dao.FakeOrderDao;
 import com.pofa.ebcadmin.order.dao.OrderDao;
@@ -16,10 +20,14 @@ import com.pofa.ebcadmin.order.entity.RefundOrderInfo;
 import com.pofa.ebcadmin.order.service.OrderService;
 import com.pofa.ebcadmin.product.dao.MismatchProductDao;
 import com.pofa.ebcadmin.product.dao.ProductDao;
+import com.pofa.ebcadmin.product.dto.Product;
 import com.pofa.ebcadmin.product.entity.MismatchProductInfo;
 import com.pofa.ebcadmin.product.entity.ProductInfo;
 import com.pofa.ebcadmin.order.orderUtils.*;
 import com.pofa.ebcadmin.product.entity.SkuInfo;
+import com.pofa.ebcadmin.team.entity.TeamInfo;
+import com.pofa.ebcadmin.user.entity.UserInfo;
+import com.pofa.ebcadmin.utils.Convert;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.ss.usermodel.*;
@@ -79,6 +87,86 @@ public class OrderServiceImpl implements OrderService {
     public String[] refundOrderHeader = {"订单编号", "退款单编号", "退款类型", "订单付款时间", "商品ID", "订单创建时间", "宝贝标题", "交易金额", "买家退款金额", "发货状态", "发货物流信息", "是否需要退货", "退款申请时间", "退款状态", "客服介入状态", "卖家退货地址", "退货物流单号", "退货物流公司", "买家退款原因", "完结时间", "退款操作人", "卖家备注"};
     public String[] fakeOrderHeader = {"序号", "会员号", "订单编号", "价格", "价格合计", "佣金", "佣金合计", "诉求日期", "佣金", "品数", "本单佣金", "团队"};
     public String[] personalFakeOrderHeader = {"线上订单号", "付款日期"};
+
+
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
+    public JSONObject getOrdersByDate(Order.GetOrderDTO dto) {
+
+        //json格式的匹配规则：select类别匹配，search模糊匹配
+        var match = JSON.parseObject(dto.getMatch(), JSONObject.class);
+        var select = match.getJSONObject("select");
+        var search = match.getJSONObject("search");
+        log.info(String.valueOf(select));
+        log.info(String.valueOf(search));
+        log.info("------------------");
+
+        var wrapper = new QueryWrapper<OrderInfo>();
+
+        var wrapperBase = new QueryWrapper<OrderInfo>();
+
+
+        //类别删选
+        for (Map.Entry<String, Object> entry : select.entrySet()) {
+            var value = (JSONArray) (entry.getValue());
+            if (value.isEmpty()) continue;
+            var items = new ArrayList<String>();
+            value.forEach(item -> items.add((String) item));
+            wrapper.in(Convert.camelToUnderScore(entry.getKey()), items);
+        }
+
+        //模糊查找
+        for (Map.Entry<String, Object> entry : search.entrySet()) {
+            if (entry.getValue() instanceof JSONArray values) {
+                if (values.isEmpty()) continue;
+                wrapper.in(Convert.camelToUnderScore(entry.getKey()), values.stream().toList());
+            } else if (entry.getValue() instanceof String value) {
+                if (value.isEmpty()) continue;
+                wrapper.like(Convert.camelToUnderScore(entry.getKey()), value);
+            }
+        }
+
+
+        var category = new JSONObject();
+
+        var targets = new ArrayList<String>();
+        targets.add("order_status");
+        targets.add("shop_name");
+        targets.add("storehouse_type");
+
+        List<OrderInfo> results;
+        for (var col : targets) {
+            var array = new JSONArray();
+            var _wrapper = wrapperBase.clone();
+            CustomTableNameHandler.customTableName.set("z_orders_" + dayFormat.format(dto.getDate()));
+            results = orderDao.selectList(_wrapper.select(col).groupBy(col));
+            results.forEach(item -> array.add(switch (col) {
+                case "order_status" -> item.getOrderStatus();
+                case "shop_name" -> item.getShopName();
+                case "storehouse_type" -> item.getStorehouseType();
+                default -> "ERROR";
+            }));
+            category.put(Convert.underScoreToCamel(col), array);
+        }
+
+        log.info(String.valueOf(category));
+
+        CustomTableNameHandler.customTableName.set("z_orders_" + dayFormat.format(dto.getDate()));
+        var total = orderDao.selectCount(wrapper);
+        wrapper.last("limit " + (dto.getPage() - 1) * dto.getItemsPerPage() + ", " + dto.getItemsPerPage());
+        var productInfoList = orderDao.selectList(wrapper);
+        return new JSONObject().fluentPut("orders", productInfoList).fluentPut("total", total).fluentPut("category", category);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
+    public BigDecimal getRealTotalAmount(Date date) {
+        CustomTableNameHandler.customTableName.set("z_orders_" + dayFormat.format(date));
+        var result = orderDao.selectList(new QueryWrapper<OrderInfo>().select("SUM(actual_amount) as total_amount"));
+        System.out.println(result);
+        return result.size() == 0 ? BigDecimal.valueOf(0) : result.get(0).getTotalAmount();
+    }
+
 
 
     @Override
@@ -655,13 +743,12 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
-
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
-    public void _personalFakeOrderIntoDatabase(HashMap<String, ArrayList<PersonalFakeOrderInfo>> personalFakeOrderPurchased){
+    public void _personalFakeOrderIntoDatabase(HashMap<String, ArrayList<PersonalFakeOrderInfo>> personalFakeOrderPurchased) {
         _personalFakeOrderIntoDatabaseImpl(personalFakeOrderPurchased);
     }
 
-    public void _personalFakeOrderIntoDatabaseImpl(HashMap<String, ArrayList<PersonalFakeOrderInfo>> personalFakeOrderPurchased){
+    public void _personalFakeOrderIntoDatabaseImpl(HashMap<String, ArrayList<PersonalFakeOrderInfo>> personalFakeOrderPurchased) {
         for (var entry : personalFakeOrderPurchased.entrySet()) {
             var key = entry.getKey();
             var value = entry.getValue();
@@ -758,7 +845,7 @@ public class OrderServiceImpl implements OrderService {
 
 
     //内部无事务
-    public void _tryMatchMisMatchAllPersonalFakeOrders(){
+    public void _tryMatchMisMatchAllPersonalFakeOrders() {
         CustomTableNameHandler.customTableName.set("fakeorders_personal");
         var allPersonalFakeOrders = personalFakeOrderDao.selectList(null);
         var personalFakeOrderPurchased = new HashMap<String, ArrayList<PersonalFakeOrderInfo>>();

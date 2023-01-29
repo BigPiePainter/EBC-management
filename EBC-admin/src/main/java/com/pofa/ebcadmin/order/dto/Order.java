@@ -6,6 +6,19 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 public class Order {
+
+    @Data
+    public static class GetOrderDTO {
+        private Date date;
+
+        private Long page;
+        private Long itemsPerPage;
+
+        private String match;
+    }
+
+
+
     @Data
     public static class GetDailyReportDTO {
         private Date date;
