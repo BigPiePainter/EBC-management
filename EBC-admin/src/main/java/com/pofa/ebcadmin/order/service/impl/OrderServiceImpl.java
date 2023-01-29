@@ -164,7 +164,7 @@ public class OrderServiceImpl implements OrderService {
         CustomTableNameHandler.customTableName.set("z_orders_" + dayFormat.format(date));
         var result = orderDao.selectList(new QueryWrapper<OrderInfo>().select("SUM(actual_amount) as total_amount"));
         System.out.println(result);
-        return result.size() == 0 ? BigDecimal.valueOf(0) : result.get(0).getTotalAmount();
+        return null == result.get(0) ? BigDecimal.valueOf(0) : result.get(0).getTotalAmount();
     }
 
 

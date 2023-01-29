@@ -213,13 +213,18 @@ public class ProductServiceImpl implements ProductService {
             });
 
             if (!departmentIds.isEmpty() && !teamIds.isEmpty()) {
+                log.info("是部长, 是组长");
                 wrapper.and(i -> i.in("department", departmentIds).or().in("team", teamIds).or().in("owner", user.getUid()));
             } else if (!departmentIds.isEmpty()) {
+                log.info("是部长");
                 wrapper.and(i -> i.in("department", departmentIds).or().in("owner", user.getUid()));
             } else if (!teamIds.isEmpty()) {
+                log.info("是组长");
                 wrapper.and(i -> i.in("team", teamIds).or().in("owner", user.getUid()));
+            } else {
+                log.info("是普通运营");
+                wrapper.in("owner", user.getUid());
             }
-
         }
 
         var wrapperBase = wrapper.clone();
@@ -273,6 +278,7 @@ public class ProductServiceImpl implements ProductService {
         log.info(String.valueOf(category));
 
         var page = new Page<ProductInfo>(dto.getPage(), dto.getItemsPerPage());
+        log.info("获取->商品清单");
         var productInfoList = productDao.selectProductsWithSkuCountWithPage(page, wrapper.orderByDesc("modify_time"));
         return new JSONObject().fluentPut("products", productInfoList).fluentPut("total", page.getTotal()).fluentPut("category", category);
     }
