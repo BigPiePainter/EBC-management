@@ -377,7 +377,7 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                   ) as z
               ) as i
               join product_ascription on i.product_id = product_ascription.product_id
-              join pofa.products on i.product_id = pofa.products.id ${ew.customSqlSegment}
+              join pofa.products on i.product_id = pofa.products.id
               left join manufacturers on i.product_id = manufacturers.product_id
               left join first_category on pofa.products.first_category = first_category.category_id
               left join product_statistic on i.product_id = product_statistic.product_id
