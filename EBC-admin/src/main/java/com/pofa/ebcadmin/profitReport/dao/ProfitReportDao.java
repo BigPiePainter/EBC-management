@@ -36,6 +36,7 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                     pofa.ascriptions
                   where
                     start_time <= ${monthDate}
+                    ${ew.sqlSegment}
                 ) a
               where
                 num = 1
@@ -69,6 +70,7 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                 z_orders_${monthDate}
                 LEFT JOIN fake_order on z_orders_${monthDate}.order_id = fake_order.id
                 LEFT JOIN fake_order_personal_purchased on z_orders_${monthDate}.order_id = fake_order_personal_purchased.id -- join product_ascription on z_orders_${monthDate}.product_id = product_ascription.product_id
+                ${ew.customSqlSegment}
             ),
             manufacturers AS (
               SELECT
@@ -375,7 +377,7 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                   ) as z
               ) as i
               join product_ascription on i.product_id = product_ascription.product_id
-              join pofa.products on i.product_id = pofa.products.id
+              join pofa.products on i.product_id = pofa.products.id ${ew.customSqlSegment}
               left join manufacturers on i.product_id = manufacturers.product_id
               left join first_category on pofa.products.first_category = first_category.category_id
               left join product_statistic on i.product_id = product_statistic.product_id
