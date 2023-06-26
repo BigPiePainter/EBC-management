@@ -1,6 +1,9 @@
 package com.pofa.ebcadmin.profitReport.dao;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.toolkit.Constants;
+import com.pofa.ebcadmin.product.entity.ProductInfo;
 import com.pofa.ebcadmin.profitReport.entity.MismatchedSkusInfo;
 import com.pofa.ebcadmin.profitReport.entity.ProfitReportInfo;
 import org.apache.ibatis.annotations.Mapper;
@@ -86,6 +89,7 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                     pofa.manufacturers
                   where
                     start_time <= ${monthDate}
+                    ${ew.sqlSegment}
                 ) a
               where
                 num = 1
@@ -145,6 +149,7 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                     skus
                   where
                     start_time <= ${monthDate}
+                    ${ew.sqlSegment}
                 ) a
               where
                 num = 1
@@ -300,6 +305,7 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                       from
                         z_fakeorders_personal_finished_${month}
                     )
+                    ${ew.sqlSegment}
                 ) as a
               group by
                 product_id
@@ -374,7 +380,7 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
               left join first_category on pofa.products.first_category = first_category.category_id
               left join product_statistic on i.product_id = product_statistic.product_id
             """)
-    List<ProfitReportInfo> calculateDailyReport(@Param("month") String month, @Param("monthDate") String monthDate);
+    List<ProfitReportInfo> calculateDailyReport(@Param("month") String month, @Param("monthDate") String monthDate, @Param(Constants.WRAPPER) Wrapper<ProductInfo> queryWrapper);
 
 
     @Select("""

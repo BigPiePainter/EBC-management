@@ -1,9 +1,19 @@
 package com.pofa.ebcadmin.profitReport.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.pofa.ebcadmin.department.dao.DepartmentDao;
+import com.pofa.ebcadmin.department.entity.DepartmentInfo;
+import com.pofa.ebcadmin.mybatisplus.CustomQueryWrapper;
+import com.pofa.ebcadmin.product.dao.ProductDao;
+import com.pofa.ebcadmin.product.entity.ProductInfo;
 import com.pofa.ebcadmin.profitReport.dao.ProfitReportDao;
 import com.pofa.ebcadmin.profitReport.entity.MismatchedSkusInfo;
 import com.pofa.ebcadmin.profitReport.entity.ProfitReportInfo;
 import com.pofa.ebcadmin.profitReport.service.ProfitReportService;
+import com.pofa.ebcadmin.team.dao.TeamDao;
+import com.pofa.ebcadmin.team.entity.TeamInfo;
+import com.pofa.ebcadmin.user.entity.UserInfo;
+import com.pofa.ebcadmin.user.enums.UserPermissionEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,10 +38,79 @@ public class ProfitReportImpl implements ProfitReportService {
     public ProfitReportDao profitReportDao;
 
 
+    @Autowired
+    public DepartmentDao departmentDao;
+
+    @Autowired
+    public TeamDao teamDao;
+
+    @Autowired
+    public ProductDao productDao;
+
     @Override
-    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
+    public List<ProfitReportInfo> getProfitReportByUser(Date startDate, Date endDate, UserInfo user) {
+
+        var wrapper = new QueryWrapper<ProductInfo>();
+
+        if (!user.getPermissionJSON().getJSONObject(UserPermissionEnum.PROFIT_REPORT_MANAGEMENT.getKey()).getBoolean(UserPermissionEnum.PROFIT_REPORT_MANAGEMENT.SHOW_FULL_PROFIT_REPORT.getKey())) {
+            //无权限
+            var departments = departmentDao.selectList(new QueryWrapper<DepartmentInfo>().select("uid", "admin"));
+            var teams = teamDao.selectList(new QueryWrapper<TeamInfo>().select("uid", "admin"));
+//            System.out.println(departments);
+//            System.out.println(teams);
+
+            var departmentIds = new ArrayList<Long>();
+            departments.forEach(departmentInfo -> {
+                if (departmentInfo.getAdmin().isEmpty()) return;
+                if (List.of(departmentInfo.getAdmin().split(",")).contains(user.getUid().toString())) {
+                    departmentIds.add(departmentInfo.getUid());
+                }
+            });
+
+            var teamIds = new ArrayList<Long>();
+            teams.forEach(teamInfo -> {
+                if (teamInfo.getAdmin().isEmpty()) return;
+                if (List.of(teamInfo.getAdmin().split(",")).contains(user.getUid().toString())) {
+                    teamIds.add(teamInfo.getUid());
+                }
+            });
+
+            if (!departmentIds.isEmpty() && !teamIds.isEmpty()) {
+                log.info("是部长, 是组长");
+                wrapper.and(i -> i.in("department", departmentIds).or().in("team", teamIds).or().in("owner", user.getUid()));
+            } else if (!departmentIds.isEmpty()) {
+                log.info("是部长");
+                wrapper.and(i -> i.in("department", departmentIds).or().in("owner", user.getUid()));
+            } else if (!teamIds.isEmpty()) {
+                log.info("是组长");
+                wrapper.and(i -> i.in("team", teamIds).or().in("owner", user.getUid()));
+            } else {
+                log.info("是普通运营");
+                wrapper.in("owner", user.getUid());
+            }
+            var productInfoList = productDao.selectList(wrapper.select("id"));
+            return _getProfitReport(startDate, endDate, (CustomQueryWrapper<ProductInfo>) new CustomQueryWrapper<ProductInfo>().in("product_id", productInfoList.stream().map(ProductInfo::getId).toList()));
+        } else {
+            return getProfitReport(startDate, endDate);
+        }
+    }
+
+    @Override
     public List<ProfitReportInfo> getProfitReport(Date startDate, Date endDate) {
+        return _getProfitReport(startDate, endDate, new CustomQueryWrapper<>());
+    }
+
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
+    public List<ProfitReportInfo> _getProfitReport(Date startDate, Date endDate, CustomQueryWrapper<ProductInfo> productFilterWrapper) {
+
         System.out.println("获取利润报表 - 利润报表！！ ");
+
+        System.out.println(productFilterWrapper);
+        System.out.println(productFilterWrapper.getCustomSqlSegment());
+        System.out.println(productFilterWrapper.getSqlSegment());
+        System.out.println("---");
+
+
         var profitReports = new ArrayList<List<ProfitReportInfo>>();
         var threads = new ArrayList<Thread>();
         var start = new Date();
@@ -51,7 +130,7 @@ public class ProfitReportImpl implements ProfitReportService {
             final var day = dayFormat.format(calendar.getTime());
             threads.add(new Thread(() -> {
                 log.info(month + "     " + day);
-                profitReports.add(profitReportDao.calculateDailyReport(month, day));
+                profitReports.add(profitReportDao.calculateDailyReport(month, day, productFilterWrapper));
             }));
             calendar.add(Calendar.DATE, 1);
         }

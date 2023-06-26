@@ -1,12 +1,14 @@
 package com.pofa.ebcadmin.profitReport.controller;
 
 
+import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.util.SaResult;
 import com.alibaba.fastjson2.JSONObject;
 import com.pofa.ebcadmin.order.dto.Order;
 import com.pofa.ebcadmin.order.service.OrderService;
 import com.pofa.ebcadmin.profitReport.dto.ProfitReport;
 import com.pofa.ebcadmin.profitReport.service.ProfitReportService;
+import com.pofa.ebcadmin.user.entity.UserInfo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +44,24 @@ public class ProfitReportController {
     }
 
 
+    @ApiOperation(value = "获取权限内的利润报表", notes = "根据日期",
+            httpMethod = "POST")
+    @PostMapping("/getProfitReportByUser")
+    public SaResult getProfitReportByUser(ProfitReport.GetByUserDTO dto) {
+        System.out.println("Get PartProfitReport TEST");
+        if (Math.abs(dto.getStartDate().getTime() - dto.getEndDate().getTime()) / 86400000 > 31){
+            return SaResult.ok("success").setData("选择的日期不能超过一个月").setCode(-1);
+        }
+
+        UserInfo user = (UserInfo) StpUtil.getSession().get("user");
+
+
+
+        var profitReport = profitReportService.getProfitReportByUser(dto.getStartDate(), dto.getEndDate(), user);
+        return SaResult.ok("success").setData(new JSONObject().fluentPut("profitReport", profitReport));
+    }
+
+
 
     @ApiOperation(value = "获取某个商品未匹配的SKU", notes = "根据日期",
             httpMethod = "POST")
@@ -52,6 +72,9 @@ public class ProfitReportController {
         var dayFormat = new SimpleDateFormat("yyyy-MM-dd");
         return SaResult.ok("success").setData(new JSONObject().fluentPut("mismatchedSkus", mismatchedSkus));
     }
+
+
+
 
 
 
