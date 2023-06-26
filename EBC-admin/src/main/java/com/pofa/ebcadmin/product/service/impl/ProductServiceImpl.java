@@ -3,6 +3,7 @@ package com.pofa.ebcadmin.product.service.impl;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -105,7 +106,7 @@ public class ProductServiceImpl implements ProductService {
                     .setNote(dto.getNote()));
             //
             ascriptionDao.insert(ascriptionInfo
-                    .setProduct(dto.getId())
+                    .setProductId(dto.getId())
                     .setDepartment(dto.getDepartment())
                     .setTeam(dto.getTeam())
                     .setOwner(dto.getOwner())
@@ -122,13 +123,14 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
     public int editProduct(Product.EditDTO dto) {
         if (dto.getStartTime() != null) {
-            var list = ascriptionDao.selectList(
-                    new QueryWrapper<AscriptionInfo>()
-                            .select("department", "team", "owner", "start_time")
-                            .eq("product", dto.getId())
-                            .orderByDesc("start_time")
-                            .last("limit 1")
-            );
+
+            var wrapper = new LambdaQueryWrapper<AscriptionInfo>()
+                    .select(AscriptionInfo::getDepartment, AscriptionInfo::getTeam, AscriptionInfo::getOwner, AscriptionInfo::getStartTime)
+                    .eq(AscriptionInfo::getProductId, dto.getId())
+                    .orderByDesc(AscriptionInfo::getStartTime)
+                    .last("limit 1");
+
+            var list = ascriptionDao.selectList(wrapper);
 
             if (list.size() == 1) {
                 if (list.get(0).getStartTime().getTime() == dto.getStartTime().getTime()) {
@@ -137,20 +139,14 @@ public class ProductServiceImpl implements ProductService {
             }
 
             ascriptionDao.insert(ascriptionInfo
-                    .setProduct(dto.getId())
+                    .setProductId(dto.getId())
                     .setDepartment(dto.getDepartment())
                     .setTeam(dto.getTeam())
                     .setOwner(dto.getOwner())
                     .setStartTime(dto.getStartTime())
                     .setNote(""));
 
-            list = ascriptionDao.selectList(
-                    new QueryWrapper<AscriptionInfo>()
-                            .select("department", "team", "owner")
-                            .eq("product", dto.getId())
-                            .orderByDesc("start_time")
-                            .last("limit 1")
-            );
+            list = ascriptionDao.selectList(wrapper);
 
             return productDao.update(productInfo
                             .setDepartment(list.get(0).getDepartment())
@@ -420,7 +416,7 @@ public class ProductServiceImpl implements ProductService {
         //彻底删除一个商品在EBC中的存在痕迹：商品+SKU+持品人+厂家信息
         var count = 0;
         count += productDao.delete(new QueryWrapper<ProductInfo>().eq("id", id));
-        count += ascriptionDao.delete(new QueryWrapper<AscriptionInfo>().eq("product", id));
+        count += ascriptionDao.delete(new LambdaQueryWrapper<AscriptionInfo>().eq(AscriptionInfo::getProductId, id));
         count += skuDao.delete(new QueryWrapper<SkuInfo>().eq("product_id", id));
         count += manufacturerDao.delete(new QueryWrapper<ManufacturerInfo>().eq("product_id", id));
         return count;

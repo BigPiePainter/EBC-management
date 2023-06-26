@@ -15,7 +15,7 @@ import java.util.Date;
 @TableName("ascriptions")
 public class AscriptionInfo {
     private Long uid;
-    private Long product;
+    private Long productId;
 
     private Long owner;
     private Long department;

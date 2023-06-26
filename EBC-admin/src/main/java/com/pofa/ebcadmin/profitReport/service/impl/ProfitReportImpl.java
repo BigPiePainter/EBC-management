@@ -101,6 +101,7 @@ public class ProfitReportImpl implements ProfitReportService {
                 wrapper.in("owner", user.getUid());
             }
             var productInfoList = productDao.selectList(wrapper.select("id"));
+            System.out.println("权限内商品数量：" + productInfoList.size());
             return _getProfitReport(startDate, endDate, (CustomQueryWrapper<ProductInfo>) new CustomQueryWrapper<ProductInfo>().in("product_id", productInfoList.stream().map(ProductInfo::getId).toList()));
         } else {
             return getProfitReport(startDate, endDate);

@@ -19,7 +19,7 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
     @Select("""
             WITH product_ascription AS (
               SELECT
-                product,
+                product_id,
                 department,
                 team,
                 owner
@@ -28,7 +28,7 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                   SELECT
                     *,
                     ROW_NUMBER() OVER (
-                      PARTITION BY product
+                      PARTITION BY product_id
                       ORDER BY
                         start_time DESC
                     ) AS num
@@ -68,7 +68,7 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
               from
                 z_orders_${monthDate}
                 LEFT JOIN fake_order on z_orders_${monthDate}.order_id = fake_order.id
-                LEFT JOIN fake_order_personal_purchased on z_orders_${monthDate}.order_id = fake_order_personal_purchased.id -- join product_ascription on z_orders_${monthDate}.product_id = product_ascription.product
+                LEFT JOIN fake_order_personal_purchased on z_orders_${monthDate}.order_id = fake_order_personal_purchased.id -- join product_ascription on z_orders_${monthDate}.product_id = product_ascription.product_id
             ),
             manufacturers AS (
               SELECT
@@ -295,7 +295,7 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                     refund_amount,
                     express_status
                   FROM
-                    pofa.z_refundorders_finished_${month} -- join product_ascription on z_refundorders_finished_${month}.product_id = product_ascription.product
+                    pofa.z_refundorders_finished_${month} -- join product_ascription on z_refundorders_finished_${month}.product_id = product_ascription.product_id
                   where
                     refund_end_time = ${monthDate}
                     AND refund_status = 1
@@ -374,7 +374,7 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                       RIGHT JOIN finished_refund_order_amount ON a.product_id = finished_refund_order_amount.refund_product_id
                   ) as z
               ) as i
-              join product_ascription on i.product_id = product_ascription.product
+              join product_ascription on i.product_id = product_ascription.product_id
               join pofa.products on i.product_id = pofa.products.id
               left join manufacturers on i.product_id = manufacturers.product_id
               left join first_category on pofa.products.first_category = first_category.category_id
@@ -412,7 +412,7 @@ public interface ProfitReportDao extends BaseMapper<ProfitReportInfo> {
                          from
                              z_orders_${monthDate}
                              LEFT JOIN fake_order on z_orders_${monthDate}.order_id = fake_order.id
-                             LEFT JOIN fake_order_personal_purchased on z_orders_${monthDate}.order_id = fake_order_personal_purchased.id -- join product_ascription on z_orders_${monthDate}.product_id = product_ascription.product
+                             LEFT JOIN fake_order_personal_purchased on z_orders_${monthDate}.order_id = fake_order_personal_purchased.id -- join product_ascription on z_orders_${monthDate}.product_id = product_ascription.product_id
                          where
                              product_id = #{productId}
                      ),

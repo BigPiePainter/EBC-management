@@ -20,7 +20,7 @@ public interface ProductDetailedDao extends BaseMapper<ProductDetailedInfo> {
     @Select("""
             WITH product_ascription AS (
               SELECT
-                product,
+                product_id,
                 department,
                 team,
                 owner
@@ -29,7 +29,7 @@ public interface ProductDetailedDao extends BaseMapper<ProductDetailedInfo> {
                   SELECT
                     *,
                     ROW_NUMBER() OVER (
-                      PARTITION BY product
+                      PARTITION BY product_id
                       ORDER BY
                         start_time DESC
                     ) AS num
@@ -112,7 +112,7 @@ public interface ProductDetailedDao extends BaseMapper<ProductDetailedInfo> {
               manufacturers.note as manufacturer_note
             from
               pofa.products
-              left join product_ascription on pofa.products.id = product_ascription.product
+              left join product_ascription on pofa.products.id = product_ascription.product_id
               left join manufacturers on pofa.products.id = manufacturers.product_id
               left join first_category on pofa.products.first_category = first_category.category_id
             """)

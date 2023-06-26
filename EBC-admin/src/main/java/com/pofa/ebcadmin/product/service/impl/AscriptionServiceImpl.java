@@ -1,5 +1,6 @@
 package com.pofa.ebcadmin.product.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.pofa.ebcadmin.product.dao.AscriptionDao;
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.List;
 
 @Service
@@ -33,31 +33,32 @@ public class AscriptionServiceImpl implements AscriptionService {
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
     public List<AscriptionInfo> getAscriptionInfosByProductId(Long productId) {
-        return ascriptionDao.selectList(new QueryWrapper<AscriptionInfo>().eq("product", productId));
+        return ascriptionDao.selectList(new LambdaQueryWrapper<AscriptionInfo>().eq(AscriptionInfo::getProductId, productId));
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
     public int deleteAscriptionInfoByUid(Long uid) {
 
-        var info = ascriptionDao.selectList(new QueryWrapper<AscriptionInfo>().eq("uid", uid)).get(0);
+        var info = ascriptionDao.selectList(new LambdaQueryWrapper<AscriptionInfo>().eq(AscriptionInfo::getUid, uid)).get(0);
 
         //删除归属信息
-        ascriptionDao.delete(new QueryWrapper<AscriptionInfo>().eq("uid", uid));
+        ascriptionDao.delete(new LambdaQueryWrapper<AscriptionInfo>().eq(AscriptionInfo::getUid, uid));
 
         var newInfo = ascriptionDao.selectList(
-                new QueryWrapper<AscriptionInfo>()
-                        .select("department", "team", "owner")
-                        .eq("product", info.getProduct())
-                        .orderByDesc("start_time")
+                new LambdaQueryWrapper<AscriptionInfo>()
+                        .select(AscriptionInfo::getDepartment, AscriptionInfo::getTeam, AscriptionInfo::getOwner)
+                        .eq(AscriptionInfo::getProductId, info.getProductId())
+                        .orderByDesc(AscriptionInfo::getStartTime)
                         .last("limit 1")
         ).get(0);
+
 
         productDao.update(new ProductInfo()
                         .setDepartment(newInfo.getDepartment())
                         .setTeam(newInfo.getTeam())
                         .setOwner(newInfo.getOwner()),
-                new UpdateWrapper<ProductInfo>().eq("id", info.getProduct()));
+                new UpdateWrapper<ProductInfo>().eq("id", info.getProductId()));
 
         return 1;
     }
