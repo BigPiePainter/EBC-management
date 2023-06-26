@@ -52,8 +52,20 @@ public class ProfitReportImpl implements ProfitReportService {
 
         var wrapper = new QueryWrapper<ProductInfo>();
 
-        if (!user.getPermissionJSON().getJSONObject(UserPermissionEnum.PROFIT_REPORT_MANAGEMENT.getKey()).getBoolean(UserPermissionEnum.PROFIT_REPORT_MANAGEMENT.SHOW_FULL_PROFIT_REPORT.getKey())) {
-            //无权限
+
+        var permission = false;
+
+        if (user.getUid() == 1L) {
+            permission = true;
+        } else if (user.getPermissionJSON().containsKey(UserPermissionEnum.PROFIT_REPORT_MANAGEMENT.getKey())) {
+            if (user.getPermissionJSON().getJSONObject(UserPermissionEnum.PROFIT_REPORT_MANAGEMENT.getKey()).containsKey(UserPermissionEnum.PROFIT_REPORT_MANAGEMENT.SHOW_FULL_PROFIT_REPORT.getKey())) {
+                if (user.getPermissionJSON().getJSONObject(UserPermissionEnum.PROFIT_REPORT_MANAGEMENT.getKey()).getBoolean(UserPermissionEnum.PROFIT_REPORT_MANAGEMENT.SHOW_FULL_PROFIT_REPORT.getKey())) {
+                    permission = true;
+                }
+            }
+        }
+
+        if (!permission) {
             var departments = departmentDao.selectList(new QueryWrapper<DepartmentInfo>().select("uid", "admin"));
             var teams = teamDao.selectList(new QueryWrapper<TeamInfo>().select("uid", "admin"));
 //            System.out.println(departments);
