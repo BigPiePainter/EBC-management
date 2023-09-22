@@ -191,7 +191,7 @@ public class ProductServiceImpl implements ProductService {
                 } else {
 
                     ascriptionDao.insert(ascriptionInfo
-                            .setProduct(productsList.get(i).getId())
+                            .setProductId(productsList.get(i).getId())
                             .setDepartment(productsList.get(i).getDepartment())
                             .setTeam(productsList.get(i).getTeam())
                             .setOwner(productsList.get(i).getOwner())
