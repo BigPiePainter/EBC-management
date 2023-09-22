@@ -1,6 +1,8 @@
 package com.pofa.ebcadmin.user.entity;
 
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -44,4 +46,9 @@ public class UserInfo {
 
     @TableField(fill = FieldFill.INSERT)
     private Boolean deprecated;
+
+
+    public JSONObject getPermissionJSON(){
+        return JSON.parseObject(permission);
+    }
 }

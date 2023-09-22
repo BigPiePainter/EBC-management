@@ -12,6 +12,12 @@ public class ProfitReport {
     }
 
     @Data
+    public static class GetByUserDTO {
+        private Date startDate;
+        private Date endDate;
+    }
+
+    @Data
     public static class GetMismatchedSkusDTO {
         private Date date;
         private Long productId;
