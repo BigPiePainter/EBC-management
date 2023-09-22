@@ -88,7 +88,8 @@ public class UserServiceImpl implements UserService {
                         .setUsername(dto.getUsername())
                         .setPassword(dto.getPassword())
                         .setNick(dto.getNick())
-                        .setNote(dto.getNote()),
+                        .setNote(dto.getNote())
+                        .setDeprecated(dto.getDeprecated()),
                 new UpdateWrapper<UserInfo>().eq("uid", dto.getUid()));
     }
 

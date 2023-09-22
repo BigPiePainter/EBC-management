@@ -15,9 +15,9 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Api(tags = "商品信息")
 @Controller
@@ -65,6 +65,14 @@ public class ProductController {
         };
 
         return SaResult.ok("success").setData(data).setCode(code);
+    }
+
+    @ApiOperation(value = "批量更换持品人", notes = "根据商品ID",
+            httpMethod = "POST")
+    @PostMapping("/change-owners")
+    public SaResult multipleChangeOwner(@RequestBody List<Product.EditDTO> productsList) {
+        var message = productService.multipleChangeOwner(productsList);
+        return SaResult.ok("success").setData(message).setCode(1);
     }
 
 
@@ -160,7 +168,6 @@ public class ProductController {
         var productDetailedInfos = productService.getAllDetailedProductsByDate(dto.getDate());
         return SaResult.ok("success").setData(new JSONObject().fluentPut("productDetails", productDetailedInfos));
     }
-
 
 
 //    @ApiOperation(value = "获取权限内的事业部, 组别, 商店名等类别", notes = "需要登陆", httpMethod = "POST")

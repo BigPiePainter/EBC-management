@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -173,6 +174,52 @@ public class ProductServiceImpl implements ProductService {
                             .setNote(dto.getNote()),
                     new UpdateWrapper<ProductInfo>().eq("id", dto.getId()));
         }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE)
+    public String multipleChangeOwner(List<Product.EditDTO> productsList) {
+        AtomicInteger errorCount = new AtomicInteger();
+        for (int i = 0; i < productsList.size(); i++) {
+            List<AscriptionInfo> ascriptionList = null;
+            ascriptionList = ascriptionDao.selectList(
+                    new QueryWrapper<AscriptionInfo>()
+                            .select("department", "team", "owner", "start_time")
+                            .eq("product", productsList.get(i).getId())
+                            .orderByDesc("start_time")
+                            .last("limit 1"));
+
+            if (ascriptionList.size() == 1) {
+                if (ascriptionList.get(0).getStartTime().getTime() == productsList.get(i).getStartTime().getTime()) {
+                    errorCount.set(errorCount.get() + 1);
+                } else {
+
+                    ascriptionDao.insert(ascriptionInfo
+                            .setProduct(productsList.get(i).getId())
+                            .setDepartment(productsList.get(i).getDepartment())
+                            .setTeam(productsList.get(i).getTeam())
+                            .setOwner(productsList.get(i).getOwner())
+                            .setStartTime(productsList.get(i).getStartTime())
+                            .setNote(""));
+
+                    ascriptionList = ascriptionDao.selectList(
+                            new QueryWrapper<AscriptionInfo>()
+                                    .select("department", "team", "owner")
+                                    .eq("product", productsList.get(i).getId())
+                                    .orderByDesc("start_time")
+                                    .last("limit 1"));
+
+                    productDao.update(productInfo
+                                    .setDepartment(ascriptionList.get(0).getDepartment())
+                                    .setTeam(ascriptionList.get(0).getTeam())
+                                    .setOwner(ascriptionList.get(0).getOwner()),
+                            new UpdateWrapper<ProductInfo>().eq("id", productsList.get(i).getId()));
+                }
+            } else {
+                return "意外错误";
+            }
+        }
+        return "修改完毕，" + errorCount + " 个商品有日期冲突，请确认。";
     }
 
     @Override

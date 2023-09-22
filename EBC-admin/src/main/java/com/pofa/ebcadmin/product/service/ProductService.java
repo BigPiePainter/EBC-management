@@ -14,6 +14,8 @@ public interface ProductService {
 
     int editProduct(Product.EditDTO dto);
 
+    String multipleChangeOwner(List<Product.EditDTO> productsList);
+
 //    JSONObject getProductsByUserIds(List<Long> idList, Product.GetDTO dto);
 
     JSONObject getProductsByUser(UserInfo user, Product.GetDTO dto, boolean deprecated);

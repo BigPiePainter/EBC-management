@@ -60,6 +60,7 @@ public class SysUser {
 
         private String nick;
         private String note;
+        private Boolean deprecated;     //是否离职
     }
 
 }
