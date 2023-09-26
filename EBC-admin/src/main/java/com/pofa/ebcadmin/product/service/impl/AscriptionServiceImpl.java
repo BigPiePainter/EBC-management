@@ -33,7 +33,7 @@ public class AscriptionServiceImpl implements AscriptionService {
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.SERIALIZABLE, readOnly = true)
     public List<AscriptionInfo> getAscriptionInfosByProductId(Long productId) {
-        return ascriptionDao.selectList(new LambdaQueryWrapper<AscriptionInfo>().eq(AscriptionInfo::getProductId, productId));
+        return ascriptionDao.selectList(new LambdaQueryWrapper<AscriptionInfo>().eq(AscriptionInfo::getProduct, productId));
     }
 
     @Override
@@ -48,7 +48,7 @@ public class AscriptionServiceImpl implements AscriptionService {
         var newInfo = ascriptionDao.selectList(
                 new LambdaQueryWrapper<AscriptionInfo>()
                         .select(AscriptionInfo::getDepartment, AscriptionInfo::getTeam, AscriptionInfo::getOwner)
-                        .eq(AscriptionInfo::getProductId, info.getProductId())
+                        .eq(AscriptionInfo::getProduct, info.getProduct())
                         .orderByDesc(AscriptionInfo::getStartTime)
                         .last("limit 1")
         ).get(0);
@@ -58,7 +58,7 @@ public class AscriptionServiceImpl implements AscriptionService {
                         .setDepartment(newInfo.getDepartment())
                         .setTeam(newInfo.getTeam())
                         .setOwner(newInfo.getOwner()),
-                new UpdateWrapper<ProductInfo>().eq("id", info.getProductId()));
+                new UpdateWrapper<ProductInfo>().eq("id", info.getProduct()));
 
         return 1;
     }
