@@ -107,7 +107,7 @@ public class ProductServiceImpl implements ProductService {
                     .setNote(dto.getNote()));
             //
             ascriptionDao.insert(ascriptionInfo
-                    .setProduct(dto.getId())
+                    .setProductId(dto.getId())
                     .setDepartment(dto.getDepartment())
                     .setTeam(dto.getTeam())
                     .setOwner(dto.getOwner())
@@ -127,7 +127,7 @@ public class ProductServiceImpl implements ProductService {
 
             var wrapper = new LambdaQueryWrapper<AscriptionInfo>()
                     .select(AscriptionInfo::getDepartment, AscriptionInfo::getTeam, AscriptionInfo::getOwner, AscriptionInfo::getStartTime)
-                    .eq(AscriptionInfo::getProduct, dto.getId())
+                    .eq(AscriptionInfo::getProductId, dto.getId())
                     .orderByDesc(AscriptionInfo::getStartTime)
                     .last("limit 1");
 
@@ -140,7 +140,7 @@ public class ProductServiceImpl implements ProductService {
             }
 
             ascriptionDao.insert(ascriptionInfo
-                    .setProduct(dto.getId())
+                    .setProductId(dto.getId())
                     .setDepartment(dto.getDepartment())
                     .setTeam(dto.getTeam())
                     .setOwner(dto.getOwner())
@@ -181,7 +181,7 @@ public class ProductServiceImpl implements ProductService {
             ascriptionList = ascriptionDao.selectList(
                     new QueryWrapper<AscriptionInfo>()
                             .select("department", "team", "owner", "start_time")
-                            .eq("product", productsList.get(i).getId())
+                            .eq("product_id", productsList.get(i).getId())
                             .orderByDesc("start_time")
                             .last("limit 1"));
 
@@ -191,7 +191,7 @@ public class ProductServiceImpl implements ProductService {
                 } else {
 
                     ascriptionDao.insert(ascriptionInfo
-                            .setProduct(productsList.get(i).getId())
+                            .setProductId(productsList.get(i).getId())
                             .setDepartment(productsList.get(i).getDepartment())
                             .setTeam(productsList.get(i).getTeam())
                             .setOwner(productsList.get(i).getOwner())
@@ -201,7 +201,7 @@ public class ProductServiceImpl implements ProductService {
                     ascriptionList = ascriptionDao.selectList(
                             new QueryWrapper<AscriptionInfo>()
                                     .select("department", "team", "owner")
-                                    .eq("product", productsList.get(i).getId())
+                                    .eq("product_id", productsList.get(i).getId())
                                     .orderByDesc("start_time")
                                     .last("limit 1"));
 
@@ -463,7 +463,7 @@ public class ProductServiceImpl implements ProductService {
         //彻底删除一个商品在EBC中的存在痕迹：商品+SKU+持品人+厂家信息
         var count = 0;
         count += productDao.delete(new QueryWrapper<ProductInfo>().eq("id", id));
-        count += ascriptionDao.delete(new LambdaQueryWrapper<AscriptionInfo>().eq(AscriptionInfo::getProduct, id));
+        count += ascriptionDao.delete(new LambdaQueryWrapper<AscriptionInfo>().eq(AscriptionInfo::getProductId, id));
         count += skuDao.delete(new QueryWrapper<SkuInfo>().eq("product_id", id));
         count += manufacturerDao.delete(new QueryWrapper<ManufacturerInfo>().eq("product_id", id));
         return count;

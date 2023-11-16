@@ -15,6 +15,7 @@ import java.util.Date;
 @TableName("ascriptions")
 public class AscriptionInfo {
     private Long uid;
+    private Long productId;
 
     private Long owner;
     private Long department;
@@ -34,6 +35,5 @@ public class AscriptionInfo {
 
     @TableField(fill = FieldFill.INSERT)
     private Boolean deprecated;
-    private Long product;
 
 }
